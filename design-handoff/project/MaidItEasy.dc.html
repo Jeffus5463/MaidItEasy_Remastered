@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#efe9df 0%,#e4ddd0 60%,#ddd4c4 100%);font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#17211f}
+a{color:#0e6e63;text-decoration:none}a:hover{color:#0a554d}
+.scr{scrollbar-width:none}.scr::-webkit-scrollbar{display:none}
+input,button,textarea{font-family:inherit}
+input:focus,textarea:focus{outline:none}
+input::placeholder,textarea::placeholder{color:#a6b0ac}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pulseRing{0%{box-shadow:0 0 0 0 rgba(14,110,99,.4)}70%{box-shadow:0 0 0 10px rgba(14,110,99,0)}100%{box-shadow:0 0 0 0 rgba(14,110,99,0)}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+@keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 34px 16px 56px; position: absolute; left: 10px; top: -17px">
+<div style="width:390px;background:#0c0c0e;border-radius:52px;padding:11px;box-shadow:0 40px 80px -24px rgba(20,30,28,.55),0 0 0 1px rgba(255,255,255,.04) inset">
+<div class="scr" style="position:relative;width:368px;height:800px;border-radius:42px;overflow:hidden;background:#fbf6ee;display:flex;flex-direction:column">
+
+<div style="position:absolute;top:0;left:0;right:0;z-index:40;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:14px;font-weight:700;color:{{ statusInk }};pointer-events:none">
+<span>9:41</span>
+<div style="position:absolute;left:50%;top:9px;transform:translateX(-50%);width:104px;height:26px;background:#0c0c0e;border-radius:16px"></div>
+<span style="display:flex;gap:5px;align-items:center">
+<svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"></rect><rect x="4.5" y="4.5" width="3" height="7.5" rx="1"></rect><rect x="9" y="2" width="3" height="10" rx="1"></rect><rect x="13.5" y="0" width="3" height="12" rx="1"></rect></svg>
+<svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.4c2.1 0 4 .8 5.4 2.1l1.3-1.4A9.5 9.5 0 0 0 8 .5 9.5 9.5 0 0 0 1.3 3.1l1.3 1.4A7.7 7.7 0 0 1 8 2.4Zm0 3.3c1.2 0 2.3.45 3.1 1.2l1.3-1.4A6 6 0 0 0 8 3.2a6 6 0 0 0-4.4 2.3l1.3 1.4A4.3 4.3 0 0 1 8 5.7Zm0 3.2 1.9 2L8 11.5 6.1 8.9c.5-.5 1.2-.8 1.9-.8Z"></path></svg>
+<svg width="26" height="12" viewBox="0 0 26 12"><rect x="1" y="1" width="21" height="10" rx="3" fill="none" stroke="currentColor" stroke-opacity=".5"></rect><rect x="23" y="4" width="2" height="4" rx="1" fill="currentColor" fill-opacity=".5"></rect><rect x="3" y="3" width="17" height="6" rx="1.5" fill="currentColor"></rect></svg>
+</span>
+</div>
+
+<div class="scr" ref="{{ scrollRef }}" style="flex:1;overflow-y:auto;overflow-x:hidden">
+
+<!-- ============ WELCOME ============ -->
+<sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+<div style="animation:fadeUp .4s ease both;min-height:800px;display:flex;flex-direction:column;background:linear-gradient(165deg,#0e6e63 0%,#0a554d 55%,#083f39 100%);color:#fff;padding:78px 30px 32px;position:relative;overflow:hidden">
+<div style="position:absolute;top:-60px;right:-50px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.06)"></div>
+<div style="position:absolute;bottom:120px;left:-70px;width:200px;height:200px;border-radius:50%;background:rgba(233,145,60,.14)"></div>
+<div style="display:flex;align-items:center;gap:11px;position:relative">
+<div style="width:44px;height:44px;border-radius:13px;background:#fff;display:flex;align-items:center;justify-content:center;color:#0e6e63">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20l3-9 5 2 5-2 3 9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path><path d="M12 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path><path d="M8.5 6.5 12 3l3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</div>
+<span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:21px;letter-spacing:-.02em">MaidItEasy</span>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;position:relative;padding:20px 0">
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:40px;line-height:1.04;letter-spacing:-.03em;text-wrap:balance">Trusted home services in Dumaguete.</div>
+<div style="margin-top:18px;font-size:15.5px;line-height:1.55;color:rgba(255,255,255,.82);max-width:290px">Background-checked professionals, transparent pricing, and easy booking — right at your doorstep.</div>
+<div style="margin-top:30px;display:flex;flex-direction:column;gap:13px">
+<div style="display:flex;align-items:center;gap:12px;font-size:14.5px;font-weight:600;color:rgba(255,255,255,.95)"><span style="width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 2l7 3v6c0 4.6-3 8-7 9-4-1-7-4.4-7-9V5l7-3z" stroke="#8fe3d6" stroke-width="1.8" stroke-linejoin="round"></path><path d="m9 12 2 2 4-4.5" stroke="#8fe3d6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>Verified, background-checked partners</div>
+<div style="display:flex;align-items:center;gap:12px;font-size:14.5px;font-weight:600;color:rgba(255,255,255,.95)"><span style="width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M8 7h5.5a2.5 2.5 0 0 1 0 5H8m0 0h6.5a2.5 2.5 0 0 1 0 5H8" stroke="#f4c58a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>Fixed peso prices, shown upfront</div>
+<div style="display:flex;align-items:center;gap:12px;font-size:14.5px;font-weight:600;color:rgba(255,255,255,.95)"><span style="width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#8fe3d6" stroke-width="1.8"></circle><path d="M12 8v4.3l2.8 1.7" stroke="#8fe3d6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>Book in under a minute</div>
+</div>
+</div>
+<button onClick="{{ goPhone }}" style="border:none;cursor:pointer;background:#fff;color:#0a554d;font-weight:800;font-size:16.5px;padding:17px;border-radius:16px;width:100%;box-shadow:0 12px 24px -8px rgba(0,0,0,.4)">Get started</button>
+<div style="text-align:center;margin-top:14px;font-size:12.5px;color:rgba(255,255,255,.6)">Serving Dumaguete City &amp; nearby barangays</div>
+</div>
+</sc-if>
+
+<!-- ============ PHONE ============ -->
+<sc-if value="{{ isPhone }}">
+<div style="animation:fadeUp .3s ease both;min-height:800px;display:flex;flex-direction:column;padding:60px 26px 30px">
+<button onClick="{{ goWelcome }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #ece3d2;cursor:pointer;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="#17211f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div style="width:50px;height:50px;border-radius:15px;background:#eaf3f0;display:flex;align-items:center;justify-content:center;color:#0e6e63;margin-top:34px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="6" y="2.5" width="12" height="19" rx="3" stroke="currentColor" stroke-width="1.9"></rect><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path></svg></div>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:27px;letter-spacing:-.02em;margin-top:18px;line-height:1.12;text-wrap:balance">What's your mobile number?</div>
+<div style="font-size:14.5px;color:#77817d;margin-top:10px;line-height:1.5;max-width:290px">We'll text you a 6-digit code to verify it's you. This is how you sign in to MaidItEasy.</div>
+<div style="margin-top:26px;display:flex;align-items:center;gap:10px;border:1.5px solid #e3dccb;border-radius:14px;background:#fff;padding:0 14px">
+<div style="display:flex;align-items:center;gap:7px;padding-right:12px;border-right:1px solid #ece3d2;color:#4a544f;font-weight:700;font-size:15px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8 7 15 15 15l-3-4-4 1c-2-1-4-3-5-5l1-4-4-3z" stroke="#0e6e63" stroke-width="1.8" stroke-linejoin="round"></path></svg>+63</div>
+<input value="{{ phone }}" onChange="{{ onPhone }}" type="tel" placeholder="0917 000 0000" style="flex:1;border:none;padding:14px 0;font-size:16px;background:transparent;color:#17211f;font-weight:600;letter-spacing:.02em">
+</div>
+<div style="flex:1"></div>
+<button onClick="{{ toOtp }}" style="{{ phoneContinueStyle }}">Send code</button>
+<div style="text-align:center;margin-top:14px;font-size:11.5px;color:#a29a88;line-height:1.5">By continuing you agree to MaidItEasy's Terms &amp; Privacy Policy.</div>
+</div>
+</sc-if>
+
+<!-- ============ OTP ============ -->
+<sc-if value="{{ isOtp }}">
+<div style="animation:fadeUp .3s ease both;min-height:800px;display:flex;flex-direction:column;padding:60px 26px 30px">
+<button onClick="{{ goPhone }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #ece3d2;cursor:pointer;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="#17211f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div style="width:50px;height:50px;border-radius:15px;background:#eaf3f0;display:flex;align-items:center;justify-content:center;color:#0e6e63;margin-top:34px"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.9"></rect><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"></path></svg></div>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:27px;letter-spacing:-.02em;margin-top:18px;line-height:1.12">Enter the code</div>
+<div style="font-size:14.5px;color:#77817d;margin-top:10px;line-height:1.5">We sent a 6-digit code by SMS to <b style="color:#17211f">{{ phoneDisplay }}</b>.</div>
+<div onClick="{{ focusOtp }}" style="position:relative;margin-top:26px;display:flex;gap:9px;justify-content:space-between;cursor:text">
+<sc-for list="{{ otpBoxes }}" as="ob" hint-placeholder-count="6">
+<div style="{{ ob.boxStyle }}">{{ ob.char }}</div>
+</sc-for>
+<input ref="{{ otpRef }}" value="{{ otp }}" onChange="{{ onOtp }}" type="tel" inputmode="numeric" maxlength="6" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;border:none;background:transparent;cursor:text">
+</div>
+<div style="margin-top:18px;font-size:13px;color:#77817d">Didn't get the code? <span onClick="{{ resendOtp }}" style="color:#0e6e63;font-weight:700;cursor:pointer">Resend</span></div>
+<div style="flex:1"></div>
+<button onClick="{{ verifyOtp }}" style="{{ verifyOtpStyle }}">Verify &amp; continue</button>
+</div>
+</sc-if>
+
+<!-- ============ HOME ============ -->
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<div style="animation:fadeUp .35s ease both;padding-bottom:24px">
+<div style="background:linear-gradient(160deg,#0e6e63,#0a554d);color:#fff;padding:58px 22px 26px;border-radius:0 0 26px 26px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start">
+<div>
+<div style="font-size:13px;color:rgba(255,255,255,.72);font-weight:600">Good morning</div>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:23px;margin-top:2px">Kumusta, Ana!</div>
+<div style="display:flex;align-items:center;gap:5px;margin-top:6px;font-size:13px;color:rgba(255,255,255,.8)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z" stroke="currentColor" stroke-width="1.9"></path><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.9"></circle></svg>Dumaguete City</div>
+</div>
+<div style="width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px">AR</div>
+</div>
+<div style="margin-top:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:13px 15px;display:flex;gap:11px;align-items:center">
+<div style="width:38px;height:38px;flex:none;border-radius:11px;background:rgba(143,227,214,.2);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l7 3v6c0 4.6-3 8-7 9-4-1-7-4.4-7-9V5l7-3z" stroke="#8fe3d6" stroke-width="1.8" stroke-linejoin="round"></path><path d="m9 12 2 2 4-4.5" stroke="#8fe3d6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+<div style="font-size:13px;line-height:1.4;color:rgba(255,255,255,.92)"><b>Every partner is verified.</b> Background-checked, NBI clearance on file, ID verified.</div>
+</div>
+</div>
+
+<div style="padding:22px 22px 0">
+<div style="display:flex;align-items:baseline;justify-content:space-between">
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px">Our services</div>
+<div style="font-size:12.5px;color:#8a938f;font-weight:600">Fixed prices</div>
+</div>
+
+<div onClick="{{ openCleaning }}" style="cursor:pointer;margin-top:15px;background:#fff;border:1px solid #efe7d9;border-radius:20px;padding:16px;box-shadow:0 8px 20px -14px rgba(20,40,36,.35);display:flex;gap:15px">
+<div style="width:66px;height:66px;flex:none;border-radius:16px;background:#eaf3f0;display:flex;align-items:center;justify-content:center;color:#0e6e63"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M5 20l2.5-8.5 4.5 1.6 4.5-1.6L19 20" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"></path><path d="M12 3.2v9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path><path d="M9 6l3-2.8L15 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path><path d="m8 15 8 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-opacity=".5"></path></svg></div>
+<div style="flex:1;min-width:0">
+<div style="font-weight:700;font-size:16px">Home Cleaning</div>
+<div style="font-size:12.5px;color:#77817d;margin-top:2px;line-height:1.4">General cleaning of your home, top to bottom.</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+<div style="font-size:11.5px;color:#8a938f;display:flex;align-items:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.9"></circle><path d="M12 8v4.3l2.8 1.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path></svg>2–3 hrs</div>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#0e6e63"><span style="font-size:11px;font-weight:600;color:#8a938f">from </span>₱399</div>
+</div>
+</div>
+</div>
+
+<div onClick="{{ openAircon }}" style="cursor:pointer;margin-top:13px;background:#fff;border:1px solid #efe7d9;border-radius:20px;padding:16px;box-shadow:0 8px 20px -14px rgba(20,40,36,.35);display:flex;gap:15px">
+<div style="width:66px;height:66px;flex:none;border-radius:16px;background:#e7f0f7;display:flex;align-items:center;justify-content:center;color:#1e6fa8"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="9" rx="2.5" stroke="currentColor" stroke-width="1.9"></rect><path d="M6.5 10.5h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><path d="M7 17.5c0 1.2-.6 2-1.6 2.5M12 17.5c0 1.2-.6 2-1.6 2.5M17 17.5c0 1.2-.6 2-1.6 2.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path></svg></div>
+<div style="flex:1;min-width:0">
+<div style="font-weight:700;font-size:16px">Aircon Cleaning &amp; Servicing</div>
+<div style="font-size:12.5px;color:#77817d;margin-top:2px;line-height:1.4">Deep clean &amp; service for cooler, cleaner air.</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+<div style="font-size:11.5px;color:#8a938f;display:flex;align-items:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.9"></circle><path d="M12 8v4.3l2.8 1.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path></svg>~45 min / unit</div>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;color:#1e6fa8">₱600<span style="font-size:12px;font-weight:600;color:#8a938f">/unit</span></div>
+</div>
+</div>
+</div>
+
+<div style="margin-top:20px;border:1px dashed #d9cfbd;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:11px;color:#9a8f78">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path></svg>
+<div style="font-size:12.5px;line-height:1.4">More services coming soon to Dumaguete — plumbing, electrical &amp; handyman.</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<!-- ============ SERVICE DETAIL ============ -->
+<sc-if value="{{ isDetail }}">
+<div style="animation:fadeUp .3s ease both">
+<div style="{{ detailHeaderStyle }}">
+<button onClick="{{ backToHome }}" style="position:absolute;top:54px;left:18px;width:38px;height:38px;border-radius:12px;border:none;cursor:pointer;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.15)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="#17211f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div style="{{ detailIconWrap }}">
+<sc-if value="{{ cur.isCleaning }}"><svg width="52" height="52" viewBox="0 0 24 24" fill="none"><path d="M5 20l2.5-8.5 4.5 1.6 4.5-1.6L19 20" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"></path><path d="M12 3.2v9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"></path><path d="M9 6l3-2.8L15 6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+<sc-if value="{{ cur.isAircon }}"><svg width="52" height="52" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="9" rx="2.5" stroke="#fff" stroke-width="1.8"></rect><path d="M6.5 10.5h11" stroke="#fff" stroke-width="1.5" stroke-linecap="round"></path><path d="M7 17.5c0 1.2-.6 2-1.6 2.5M12 17.5c0 1.2-.6 2-1.6 2.5M17 17.5c0 1.2-.6 2-1.6 2.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"></path></svg></sc-if>
+</div>
+</div>
+<div style="padding:20px 22px 130px">
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:24px;letter-spacing:-.02em">{{ cur.name }}</div>
+<div style="font-size:14px;color:#77817d;margin-top:4px;line-height:1.5">{{ cur.desc }}</div>
+<div style="display:flex;gap:10px;margin-top:16px">
+<div style="flex:1;background:#fff;border:1px solid #efe7d9;border-radius:14px;padding:12px 14px">
+<div style="font-size:11px;color:#8a938f;font-weight:600;text-transform:uppercase;letter-spacing:.04em">{{ cur.priceLabel }}</div>
+<div style="{{ cur.priceColorStyle }}">{{ cur.priceStr }}<span style="font-size:12px;font-weight:600;color:#8a938f">{{ cur.priceSuffix }}</span></div>
+</div>
+<div style="flex:1;background:#fff;border:1px solid #efe7d9;border-radius:14px;padding:12px 14px">
+<div style="font-size:11px;color:#8a938f;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Duration</div>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;margin-top:2px">{{ cur.duration }}</div>
+</div>
+</div>
+
+<div style="font-weight:700;font-size:15px;margin-top:24px;margin-bottom:2px">What's included</div>
+<sc-for list="{{ cur.includes }}" as="inc" hint-placeholder-count="5">
+<div style="display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f0e9dc">
+<span style="width:22px;height:22px;flex:none;border-radius:50%;background:#eaf3f0;display:flex;align-items:center;justify-content:center;margin-top:1px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#0e6e63" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+<span style="font-size:14px;color:#39443f;line-height:1.4">{{ inc }}</span>
+</div>
+</sc-for>
+
+<div style="margin-top:20px;background:#f6f1e7;border:1px solid #ece3d2;border-radius:16px;padding:14px 15px;display:flex;gap:12px;align-items:center">
+<span style="width:38px;height:38px;flex:none;border-radius:11px;background:#0e6e63;display:flex;align-items:center;justify-content:center"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M12 2l7 3v6c0 4.6-3 8-7 9-4-1-7-4.4-7-9V5l7-3z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"></path><path d="m9 12 2 2 4-4.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+<div style="font-size:12.5px;line-height:1.45;color:#6a6252">You'll be assigned a <b style="color:#17211f">Verified Partner</b> — background-checked with NBI clearance on file. You don't pick; we dispatch our best available pro.</div>
+</div>
+</div>
+
+<div style="position:sticky;bottom:0;background:linear-gradient(to top,#fbf6ee 72%,rgba(251,246,238,0));padding:14px 22px 22px;display:flex;gap:14px;align-items:center">
+<div>
+<div style="font-size:11px;color:#8a938f;font-weight:600">Total from</div>
+<div style="{{ cur.priceColorStyleLg }}">{{ cur.priceStr }}</div>
+</div>
+<button onClick="{{ openForm }}" style="flex:1;border:none;cursor:pointer;background:#0e6e63;color:#fff;font-weight:800;font-size:16px;padding:16px;border-radius:15px;box-shadow:0 10px 22px -8px rgba(14,110,99,.6)">Book this service</button>
+</div>
+</div>
+</sc-if>
+
+<!-- ============ BOOKING FORM ============ -->
+<sc-if value="{{ isForm }}">
+<div style="animation:fadeUp .3s ease both;padding-bottom:120px">
+<div style="padding:54px 22px 8px;display:flex;align-items:center;gap:12px">
+<button onClick="{{ backToDetail }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #ece3d2;cursor:pointer;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="#17211f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px">Book service</div>
+</div>
+
+<div style="padding:8px 22px 0">
+<div style="background:#fff;border:1px solid #efe7d9;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+<div style="{{ formIconWrap }}">
+<sc-if value="{{ cur.isCleaning }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 20l2.5-8.5 4.5 1.6 4.5-1.6L19 20" stroke="#0e6e63" stroke-width="1.8" stroke-linejoin="round"></path><path d="M12 3.2v9" stroke="#0e6e63" stroke-width="1.8" stroke-linecap="round"></path></svg></sc-if>
+<sc-if value="{{ cur.isAircon }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="9" rx="2.5" stroke="#1e6fa8" stroke-width="1.8"></rect><path d="M6.5 10.5h11" stroke="#1e6fa8" stroke-width="1.5" stroke-linecap="round"></path></svg></sc-if>
+</div>
+<div style="flex:1"><div style="font-weight:700;font-size:14.5px">{{ cur.name }}</div><div style="font-size:12px;color:#8a938f">{{ cur.priceStr }}{{ cur.priceSuffix }} · {{ cur.duration }}</div></div>
+</div>
+
+<sc-if value="{{ cur.isAircon }}">
+<div style="margin-top:14px;background:#fff;border:1px solid #efe7d9;border-radius:14px;padding:14px;display:flex;align-items:center;justify-content:space-between">
+<div><div style="font-weight:700;font-size:14px">Number of units</div><div style="font-size:12px;color:#8a938f">₱600 each</div></div>
+<div style="display:flex;align-items:center;gap:14px">
+<button onClick="{{ unitDec }}" style="width:34px;height:34px;border-radius:10px;border:1px solid #d9d0bf;background:#fbf7ef;cursor:pointer;font-size:20px;font-weight:700;color:#0e6e63;line-height:1">–</button>
+<span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px;min-width:20px;text-align:center">{{ units }}</span>
+<button onClick="{{ unitInc }}" style="width:34px;height:34px;border-radius:10px;border:1px solid #d9d0bf;background:#fbf7ef;cursor:pointer;font-size:20px;font-weight:700;color:#0e6e63;line-height:1">+</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ cur.isCleaning }}">
+<div style="font-weight:700;font-size:14px;margin:22px 0 10px">Home size</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px">
+<sc-for list="{{ tiers }}" as="tr" hint-placeholder-count="4">
+<div onClick="{{ tr.onSelect }}" style="{{ tr.style }}"><span style="font-weight:700;font-size:14px">{{ tr.label }}</span><span style="font-size:13px;font-weight:700;opacity:.82">{{ tr.priceStr }}</span></div>
+</sc-for>
+</div>
+</sc-if>
+
+<div style="font-weight:700;font-size:14px;margin:22px 0 10px">Choose a date</div>
+<div class="scr" style="display:flex;gap:9px;overflow-x:auto;padding-bottom:2px">
+<sc-for list="{{ dates }}" as="d" hint-placeholder-count="6">
+<div onClick="{{ d.onSelect }}" style="{{ d.style }}"><span style="font-size:11px;font-weight:600;opacity:.7">{{ d.dow }}</span><span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;margin-top:2px">{{ d.day }}</span><span style="font-size:10px;margin-top:1px;opacity:.7">{{ d.mon }}</span></div>
+</sc-for>
+</div>
+
+<div style="font-weight:700;font-size:14px;margin:22px 0 10px">Choose a time</div>
+<div style="display:flex;flex-wrap:wrap;gap:9px">
+<sc-for list="{{ times }}" as="t" hint-placeholder-count="4">
+<div onClick="{{ t.onSelect }}" style="{{ t.style }}">{{ t.display }}</div>
+</sc-for>
+</div>
+<div style="margin-top:9px;font-size:11.5px;color:#8a938f;display:flex;gap:6px;align-items:flex-start"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9" stroke="#b8beb9" stroke-width="1.8"></circle><path d="M12 11v5M12 8h.01" stroke="#b8beb9" stroke-width="2" stroke-linecap="round"></path></svg><span>Some slots may be full based on partner availability.</span></div>
+
+<div style="font-weight:700;font-size:14px;margin:24px 0 6px">Where should we go?</div>
+<div style="background:#eaf3f0;border:1px solid #d7e7e2;border-radius:14px;height:118px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center">
+<svg width="100%" height="118" viewBox="0 0 320 118" preserveAspectRatio="none" style="position:absolute;inset:0;opacity:.5"><path d="M0 40 H320 M0 82 H320 M70 0 V118 M180 0 V118 M255 0 V118" stroke="#b6d2ca" stroke-width="2"></path></svg>
+<div style="position:relative;display:flex;flex-direction:column;align-items:center"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z" fill="#0e6e63"></path><circle cx="12" cy="10" r="2.6" fill="#fff"></circle></svg><span style="font-size:11px;color:#4d766c;font-weight:600;margin-top:2px">Drop your pin</span></div>
+</div>
+
+<div style="margin-top:14px"><label style="font-size:12.5px;font-weight:700;color:#4a544f;display:block;margin-bottom:6px">Barangay</label>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ barangays }}" as="b" hint-placeholder-count="7">
+<div onClick="{{ b.onSelect }}" style="{{ b.style }}">{{ b.name }}</div>
+</sc-for>
+</div></div>
+
+<div style="margin-top:16px;background:#fff6ea;border:1.5px solid #f0d9b3;border-radius:14px;padding:13px 14px">
+<label style="font-size:13px;font-weight:700;color:#a56a1c;display:flex;align-items:center;gap:6px;margin-bottom:2px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z" stroke="#c98a2e" stroke-width="1.9"></path><circle cx="12" cy="10" r="2.4" stroke="#c98a2e" stroke-width="1.9"></circle></svg>Landmark <span style="font-weight:600;color:#c39a5c">— how we'll find you</span></label>
+<div style="font-size:11.5px;color:#b58e4f;margin-bottom:8px">The clearest way to reach you in Dumaguete.</div>
+<input value="{{ landmark }}" onChange="{{ onLandmark }}" placeholder="e.g. near Silliman gate, beside Lee Plaza" style="width:100%;border:1.5px solid #ecd6ac;border-radius:11px;padding:12px 13px;font-size:14px;background:#fff;color:#17211f">
+</div>
+
+<div style="margin-top:14px"><label style="font-size:12.5px;font-weight:700;color:#4a544f;display:block;margin-bottom:6px">Contact number</label>
+<input value="{{ contact }}" onChange="{{ onContact }}" type="tel" placeholder="0917 000 0000" style="width:100%;border:1px solid #e3dccb;border-radius:11px;padding:12px 13px;font-size:14px;background:#fff;color:#17211f"></div>
+</div>
+
+<div style="position:sticky;bottom:0;background:linear-gradient(to top,#fbf6ee 72%,rgba(251,246,238,0));padding:14px 22px 22px;display:flex;gap:14px;align-items:center">
+<div><div style="font-size:11px;color:#8a938f;font-weight:600">Total</div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:22px;color:#0e6e63">{{ cur.totalStr }}</div></div>
+<button onClick="{{ toPayment }}" style="{{ continueBtnStyle }}">Continue to payment</button>
+</div>
+</div>
+</sc-if>
+
+<!-- ============ PAYMENT ============ -->
+<sc-if value="{{ isPayment }}">
+<div style="animation:fadeUp .3s ease both;padding-bottom:120px">
+<div style="padding:54px 22px 8px;display:flex;align-items:center;gap:12px">
+<button onClick="{{ backToForm }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #ece3d2;cursor:pointer;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="#17211f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:20px">Payment</div>
+</div>
+<div style="padding:8px 22px 0">
+<div style="background:#fff;border:1px solid #efe7d9;border-radius:16px;padding:15px 16px">
+<div style="font-weight:700;font-size:13px;color:#8a938f;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px">Order summary</div>
+<div style="display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0"><span style="color:#5c655f">{{ sumService }}</span><span style="font-weight:700">{{ cur.totalStr }}</span></div>
+<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#8a938f"><span>{{ sumWhen }}</span></div>
+<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:#8a938f"><span style="max-width:230px;text-align:left">{{ sumWhere }}</span></div>
+<div style="border-top:1px dashed #e3dccb;margin-top:8px;padding-top:10px;display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:700;font-size:15px">Total</span><span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:22px;color:#0e6e63">{{ cur.totalStr }}</span></div>
+</div>
+
+<div style="font-weight:700;font-size:15px;margin:22px 0 12px">How would you like to pay?</div>
+
+<div onClick="{{ selGcash }}" style="{{ gcashOptStyle }}">
+<div style="display:flex;align-items:center;gap:12px">
+<div style="width:42px;height:42px;border-radius:11px;background:#0a7cff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;letter-spacing:-.02em">GCash</div>
+<div style="flex:1"><div style="font-weight:700;font-size:14.5px">Pay with GCash</div><div style="font-size:12px;color:#8a938f">Send &amp; enter your reference number</div></div>
+<div style="{{ gcashRadio }}"><sc-if value="{{ payGcash }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></div>
+</div>
+<sc-if value="{{ payGcash }}">
+<div style="margin-top:14px;border-top:1px solid #e6eef0;padding-top:14px">
+<div style="background:#eaf3f0;border-radius:11px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:11px;color:#5c766e;font-weight:600">Send to (MaidItEasy GCash)</div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:17px;color:#0a554d;letter-spacing:.01em">0917 555 0123</div></div><div style="font-size:12px;font-weight:700;color:#0e6e63;background:#fff;padding:6px 10px;border-radius:8px">Copy</div></div>
+<label style="display:block;font-size:12.5px;font-weight:700;color:#4a544f;margin:12px 0 6px">GCash reference number</label>
+<input value="{{ gcashRef }}" onChange="{{ onGcashRef }}" placeholder="e.g. 8021 4455 9930" style="width:100%;border:1px solid #dfe6e4;border-radius:11px;padding:12px 13px;font-size:14px;background:#fff">
+<div style="margin-top:9px;font-size:11.5px;color:#8a938f;display:flex;gap:6px;align-items:flex-start"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9" stroke="#b8beb9" stroke-width="1.8"></circle><path d="M12 11v5M12 8h.01" stroke="#b8beb9" stroke-width="2" stroke-linecap="round"></path></svg><span>Our admin will verify your payment before assigning a partner. Usually within a few minutes.</span></div>
+</div>
+</sc-if>
+</div>
+
+<div onClick="{{ selCash }}" style="{{ cashOptStyle }}">
+<div style="display:flex;align-items:center;gap:12px">
+<div style="width:42px;height:42px;border-radius:11px;background:#f0e6d3;display:flex;align-items:center;justify-content:center;color:#a5772a"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2.5" stroke="currentColor" stroke-width="1.8"></rect><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.8"></circle></svg></div>
+<div style="flex:1"><div style="font-weight:700;font-size:14.5px">Pay cash at office</div><div style="font-size:12px;color:#8a938f">Settle at the MaidItEasy office</div></div>
+<div style="{{ cashRadio }}"><sc-if value="{{ payCash }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if></div>
+</div>
+<sc-if value="{{ payCash }}">
+<div style="margin-top:12px;border-top:1px solid #eee3d0;padding-top:12px;font-size:12px;color:#8a7c60;line-height:1.5">Drop by our office along <b style="color:#5c5240">Perdices St., Dumaguete</b> to pay in cash. Your booking is confirmed once payment is received.</div>
+</sc-if>
+</div>
+
+<div style="margin-top:16px;background:#eaf3f0;border-radius:14px;padding:13px 15px;display:flex;gap:11px;align-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><path d="M12 2l7 3v6c0 4.6-3 8-7 9-4-1-7-4.4-7-9V5l7-3z" stroke="#0e6e63" stroke-width="1.7" stroke-linejoin="round"></path><path d="m9 12 2 2 4-4.5" stroke="#0e6e63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></path></svg><div style="font-size:12px;color:#3f5952;line-height:1.45"><b>Your partner never handles money.</b> All payments go through MaidItEasy — never pay the worker directly.</div></div>
+</div>
+
+<div style="position:sticky;bottom:0;background:linear-gradient(to top,#fbf6ee 72%,rgba(251,246,238,0));padding:14px 22px 22px">
+<button onClick="{{ confirmBooking }}" style="{{ confirmBtnStyle }}">Confirm booking · {{ cur.totalStr }}</button>
+</div>
+</div>
+</sc-if>
+
+<!-- ============ CONFIRMATION ============ -->
+<sc-if value="{{ isConfirm }}">
+<div style="animation:fadeUp .35s ease both;min-height:800px;display:flex;flex-direction:column;padding:70px 24px 26px;text-align:center;align-items:center">
+<div style="width:96px;height:96px;border-radius:50%;background:#fff2df;display:flex;align-items:center;justify-content:center;animation:pop .5s cubic-bezier(.2,1.2,.4,1) both"><div style="width:70px;height:70px;border-radius:50%;background:#f6a840;display:flex;align-items:center;justify-content:center"><svg width="38" height="38" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.8"></circle><path d="M12 7.5V12l3 2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></div></div>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:26px;margin-top:22px;letter-spacing:-.02em">Booking received!</div>
+<div style="display:inline-flex;align-items:center;gap:7px;margin-top:12px;background:#fff2df;color:#b06f10;font-weight:700;font-size:13px;padding:7px 14px;border-radius:20px"><span style="width:8px;height:8px;border-radius:50%;background:#f6a840;animation:pulseRing 1.6s infinite"></span>Pending</div>
+<div style="font-size:14.5px;color:#6a726d;margin-top:16px;line-height:1.55;max-width:280px">We're assigning a <b style="color:#0e6e63">verified partner</b> to your booking. You'll be notified as soon as someone is on the way.</div>
+
+<div style="margin-top:24px;width:100%;background:#fff;border:1px solid #efe7d9;border-radius:16px;padding:16px;text-align:left">
+<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:#8a938f">Service</span><span style="font-weight:700">{{ book.name }}</span></div>
+<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:#8a938f">When</span><span style="font-weight:600">{{ book.when }}</span></div>
+<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:#8a938f">Where</span><span style="font-weight:600;max-width:190px;text-align:right">{{ book.where }}</span></div>
+<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13.5px"><span style="color:#8a938f">Payment</span><span style="font-weight:600">{{ book.payLabel }}</span></div>
+<div style="border-top:1px dashed #e3dccb;margin-top:6px;padding-top:9px;display:flex;justify-content:space-between"><span style="font-weight:700">Total</span><span style="font-family:'Bricolage Grotesque';font-weight:700;font-size:18px;color:#0e6e63">{{ book.totalStr }}</span></div>
+</div>
+<div style="margin-top:16px;width:100%;background:#fff;border:1px solid #efe7d9;border-radius:14px;padding:12px 14px;display:flex;gap:11px;align-items:center;text-align:left"><span style="width:34px;height:34px;flex:none;border-radius:10px;background:#eaf3f0;display:flex;align-items:center;justify-content:center;color:#0e6e63"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span><div style="font-size:12px;color:#5c655f;line-height:1.45">We'll push you a notification when your partner is <b style="color:#17211f">confirmed</b> and again when they're <b style="color:#17211f">on the way</b>.</div></div>
+<div style="flex:1"></div>
+<button onClick="{{ startTracking }}" style="margin-top:24px;width:100%;border:none;cursor:pointer;background:#0e6e63;color:#fff;font-weight:800;font-size:16px;padding:16px;border-radius:15px;box-shadow:0 10px 22px -8px rgba(14,110,99,.55)">Track my booking</button>
+<button onClick="{{ goHome }}" style="margin-top:11px;width:100%;border:none;cursor:pointer;background:transparent;color:#8a938f;font-weight:700;font-size:14px;padding:6px">Back to home</button>
+</div>
+</sc-if>
+
+<!-- ============ TRACKING ============ -->
+<sc-if value="{{ isTracking }}">
+<div style="animation:fadeUp .3s ease both;padding-bottom:30px">
+<div style="padding:54px 22px 8px;display:flex;align-items:center;gap:12px">
+<button onClick="{{ goBookings }}" style="width:38px;height:38px;border-radius:12px;border:1px solid #ece3d2;cursor:pointer;background:#fff;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="#17211f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+<div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:19px">{{ book.name }}</div><div style="font-size:12px;color:#8a938f">{{ book.when }}</div></div>
+</div>
+<div style="padding:6px 22px 0">
+<div style="{{ trackBannerStyle }}"><span style="{{ trackBannerDot }}"></span>{{ trackBannerText }}</div>
+
+<sc-if value="{{ pushVisible }}">
+<div style="margin-top:12px;background:#fff;border:1px solid #e6ded0;border-radius:14px;padding:11px 13px;display:flex;gap:11px;align-items:center;box-shadow:0 8px 20px -14px rgba(20,40,36,.4);animation:fadeUp .35s ease both"><span style="width:34px;height:34px;flex:none;border-radius:10px;background:#0e6e63;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"></path><path d="M10 19a2 2 0 0 0 4 0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"></path></svg></span><div style="flex:1"><div style="font-size:10.5px;font-weight:700;color:#8a938f;text-transform:uppercase;letter-spacing:.04em">Push notification</div><div style="font-size:13px;font-weight:700;color:#17211f;margin-top:1px">{{ pushText }}</div></div></div>
+</sc-if>
+
+<!-- partner card -->
+<sc-if value="{{ partnerVisible }}">
+<div style="margin-top:16px;background:#fff;border:1px solid #efe7d9;border-radius:18px;overflow:hidden;box-shadow:0 10px 26px -16px rgba(20,40,36,.4);animation:fadeUp .4s ease both">
+<div style="background:linear-gradient(120deg,#0e6e63,#0a554d);padding:9px 15px;display:flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 2l7 3v6c0 4.6-3 8-7 9-4-1-7-4.4-7-9V5l7-3z" fill="#8fe3d6"></path><path d="m9 12 2 2 4-4.5" stroke="#0a554d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg><span style="color:#fff;font-weight:800;font-size:12.5px;letter-spacing:.02em">VERIFIED PARTNER</span><span style="margin-left:auto;color:rgba(255,255,255,.7);font-size:10.5px;font-weight:600">NBI · ID verified</span></div>
+<div style="padding:15px;display:flex;gap:14px;align-items:center">
+<div style="{{ partnerAvatarStyle }}">{{ partner.initials }}</div>
+<div style="flex:1"><div style="font-weight:700;font-size:17px">{{ partner.name }}</div><div style="display:flex;align-items:center;gap:8px;margin-top:3px"><span style="display:inline-flex;align-items:center;gap:3px;font-size:13px;font-weight:700;color:#e6913c"><svg width="14" height="14" viewBox="0 0 24 24" fill="#f6a840"><path d="M12 2l2.9 6.2 6.6.8-4.9 4.5 1.3 6.5L12 17.6 6.1 20.5l1.3-6.5L2.5 9l6.6-.8L12 2z"></path></svg>{{ partner.ratingStr }}</span><span style="font-size:12px;color:#8a938f">· {{ partner.jobs }}</span></div></div>
+<div style="display:flex;gap:9px"><div style="width:38px;height:38px;border-radius:11px;background:#eaf3f0;display:flex;align-items:center;justify-content:center;color:#0e6e63"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8 7 15 15 15l-3-4-4 1c-2-1-4-3-5-5l1-4-4-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg></div><div style="width:38px;height:38px;border-radius:11px;background:#eaf3f0;display:flex;align-items:center;justify-content:center;color:#0e6e63"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16v11H7l-3 3V6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path></svg></div></div>
+</div>
+</div>
+</sc-if>
+
+<!-- en route eta -->
+<sc-if value="{{ enrouteVisible }}">
+<div style="margin-top:14px;background:#eaf3f0;border:1px solid #d7e7e2;border-radius:16px;height:132px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;animation:fadeUp .3s ease both">
+<svg width="100%" height="132" viewBox="0 0 320 132" preserveAspectRatio="none" style="position:absolute;inset:0;opacity:.5"><path d="M0 46 H320 M0 92 H320 M80 0 V132 M200 0 V132" stroke="#b6d2ca" stroke-width="2"></path><path d="M20 110 C90 60 160 90 300 30" stroke="#0e6e63" stroke-width="3" stroke-dasharray="6 6" fill="none"></path></svg>
+<div style="position:relative;background:#fff;border-radius:12px;padding:9px 14px;box-shadow:0 6px 16px -6px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#0e6e63" stroke-width="1.9"></circle><path d="M12 8v4.3l2.8 1.7" stroke="#0e6e63" stroke-width="1.9" stroke-linecap="round"></path></svg><span style="font-size:13px;font-weight:700">Arriving in ~12 min</span></div>
+</div>
+</sc-if>
+
+<!-- before/after -->
+<sc-if value="{{ beforeAfterVisible }}">
+<div style="margin-top:16px;animation:fadeUp .4s ease both">
+<div style="font-weight:700;font-size:14px;margin-bottom:10px">Before &amp; after</div>
+<div style="display:flex;gap:11px">
+<div style="flex:1"><div style="height:104px;border-radius:14px;background:linear-gradient(135deg,#c9c0b0,#a99f8c);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="opacity:.7"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="#fff" stroke-width="1.8"></rect><circle cx="9" cy="10" r="1.8" fill="#fff"></circle><path d="m3 17 5-4 4 3 3-2 6 5" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"></path></svg></div><div style="text-align:center;font-size:11.5px;color:#8a938f;font-weight:600;margin-top:5px">Before</div></div>
+<div style="flex:1"><div style="height:104px;border-radius:14px;background:linear-gradient(135deg,#d7ece5,#a9d8cc);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" style="opacity:.85"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="#0a554d" stroke-width="1.8"></rect><circle cx="9" cy="10" r="1.8" fill="#0a554d"></circle><path d="m3 17 5-4 4 3 3-2 6 5" stroke="#0a554d" stroke-width="1.8" stroke-linejoin="round"></path></svg></div><div style="text-align:center;font-size:11.5px;color:#0e6e63;font-weight:700;margin-top:5px">After</div></div>
+</div>
+</div>
+</sc-if>
+
+<!-- timeline -->
+<div style="margin-top:20px;background:#fff;border:1px solid #efe7d9;border-radius:18px;padding:18px 18px 6px">
+<div style="font-weight:700;font-size:14px;margin-bottom:14px">Status</div>
+<sc-for list="{{ trackSteps }}" as="st" hint-placeholder-count="5">
+<div style="display:flex;gap:14px">
+<div style="display:flex;flex-direction:column;align-items:center">
+<div style="{{ st.dotStyle }}">
+<sc-if value="{{ st.isDone }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4 10-10" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+<sc-if value="{{ st.isActive }}"><span style="width:8px;height:8px;border-radius:50%;background:#fff"></span></sc-if>
+</div>
+<sc-if value="{{ st.showLine }}"><div style="{{ st.lineStyle }}"></div></sc-if>
+</div>
+<div style="padding-bottom:20px;flex:1">
+<div style="{{ st.titleStyle }}">{{ st.title }}</div>
+<div style="font-size:12.5px;color:#8a938f;margin-top:2px;line-height:1.4">{{ st.desc }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+
+<sc-if value="{{ showRateCta }}">
+<button onClick="{{ openCompletion }}" style="margin-top:16px;width:100%;border:none;cursor:pointer;background:#0e6e63;color:#fff;font-weight:800;font-size:16px;padding:16px;border-radius:15px;box-shadow:0 10px 22px -8px rgba(14,110,99,.55);animation:fadeUp .4s ease both">Rate your partner</button>
+</sc-if>
+
+</div>
+</div>
+</sc-if>
+
+<!-- ============ COMPLETION + RATING ============ -->
+<sc-if value="{{ isCompletion }}">
+<div style="animation:fadeUp .35s ease both;padding:70px 24px 26px;text-align:center;min-height:800px;display:flex;flex-direction:column;align-items:center">
+<div style="width:88px;height:88px;border-radius:50%;background:#e4f3ee;display:flex;align-items:center;justify-content:center;animation:pop .5s cubic-bezier(.2,1.2,.4,1) both"><div style="width:64px;height:64px;border-radius:50%;background:#0e6e63;display:flex;align-items:center;justify-content:center"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></div></div>
+<div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:25px;margin-top:20px;letter-spacing:-.02em">Job completed!</div>
+<div style="font-size:14px;color:#6a726d;margin-top:8px;line-height:1.5;max-width:270px">{{ partner.name }} finished your {{ book.name }}. Here's the result.</div>
+
+<div style="margin-top:20px;width:100%;display:flex;gap:11px">
+<div style="flex:1"><div style="height:96px;border-radius:14px;background:linear-gradient(135deg,#c9c0b0,#a99f8c);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="opacity:.7"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="#fff" stroke-width="1.8"></rect><path d="m3 17 5-4 4 3 3-2 6 5" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"></path></svg></div><div style="font-size:11.5px;color:#8a938f;font-weight:600;margin-top:5px">Before</div></div>
+<div style="flex:1"><div style="height:96px;border-radius:14px;background:linear-gradient(135deg,#d7ece5,#a9d8cc);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="opacity:.85"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="#0a554d" stroke-width="1.8"></rect><path d="m3 17 5-4 4 3 3-2 6 5" stroke="#0a554d" stroke-width="1.8" stroke-linejoin="round"></path></svg></div><div style="font-size:11.5px;color:#0e6e63;font-weight:700;margin-top:5px">After</div></div>
+</div>
+
+<div style="margin-top:24px;width:100%;background:#fff;border:1px solid #efe7d9;border-radius:18px;padding:20px 18px">
+<div style="display:flex;align-items:center;gap:12px;justify-content:center"><div style="{{ partnerAvatarStyleSm }}">{{ partner.initials }}</div><div style="text-align:left"><div style="font-weight:700;font-size:15px">{{ partner.name }}</div><div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#0e6e63;background:#eaf3f0;padding:3px 8px;border-radius:20px;margin-top:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 2l7 3v6c0 4.6-3 8-7 9-4-1-7-4.4-7-9V5l7-3z" fill="#0e6e63"></path><path d="m9 12 2 2 4-4.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>Verified Partner</div></div></div>
+<div style="font-size:14px;font-weight:600;color:#4a544f;margin-top:16px">How was your service?</div>
+<div style="display:flex;justify-content:center;gap:10px;margin-top:12px">
+<sc-for list="{{ stars }}" as="s" hint-placeholder-count="5">
+<div onClick="{{ s.onClick }}" style="cursor:pointer"><svg width="38" height="38" viewBox="0 0 24 24" fill="{{ s.fill }}"><path d="M12 2l2.9 6.2 6.6.8-4.9 4.5 1.3 6.5L12 17.6 6.1 20.5l1.3-6.5L2.5 9l6.6-.8L12 2z" stroke="{{ s.stroke }}" stroke-width="1.4" stroke-linejoin="round"></path></svg></div>
+</sc-for>
+</div>
+<div style="font-size:12.5px;color:#8a938f;margin-top:8px;height:16px">{{ ratingLabel }}</div>
+</div>
+<div style="flex:1"></div>
+<button onClick="{{ submitRating }}" style="{{ submitRatingStyle }}">Submit rating</button>
+</div>
+</sc-if>
+
+<!-- ============ BOOKINGS HISTORY ============ -->
+<sc-if value="{{ isBookings }}">
+<div style="animation:fadeUp .3s ease both;padding-bottom:24px">
+<div style="padding:56px 22px 16px"><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:24px;letter-spacing:-.02em">My bookings</div></div>
+<div style="padding:0 22px">
+<sc-for list="{{ bookingList }}" as="bk" hint-placeholder-count="3">
+<div onClick="{{ bk.onOpen }}" style="{{ bk.rowStyle }}">
+<div style="display:flex;justify-content:space-between;align-items:flex-start"><div style="display:flex;gap:12px;align-items:center"><div style="{{ bk.iconStyle }}"><span style="font-size:18px">{{ bk.icon }}</span></div><div><div style="font-weight:700;font-size:15px">{{ bk.name }}</div><div style="font-size:12px;color:#8a938f;margin-top:1px">{{ bk.when }}</div></div></div><div style="{{ bk.chipStyle }}">{{ bk.status }}</div></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:11px;border-top:1px solid #f0e9dc"><div style="font-size:12px;color:#8a938f;display:flex;align-items:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.7 7-11a7 7 0 1 0-14 0c0 5.3 7 11 7 11Z" stroke="currentColor" stroke-width="1.9"></path><circle cx="12" cy="10" r="2.2" stroke="currentColor" stroke-width="1.9"></circle></svg>{{ bk.barangay }}</div><div style="font-family:'Bricolage Grotesque';font-weight:700;font-size:16px;color:#17211f">{{ bk.totalStr }}</div></div>
+</div>
+</sc-for>
+<div style="text-align:center;padding:16px 0 8px;font-size:12px;color:#b3ac9c">That's all your bookings.</div>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+<!-- ============ BOTTOM NAV ============ -->
+<sc-if value="{{ showNav }}">
+<div style="flex:none;background:#fff;border-top:1px solid #efe7d9;padding:8px 40px 22px;display:flex;justify-content:space-between">
+<div onClick="{{ goHome }}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ navHomeColor }};flex:1"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"></path></svg><span style="font-size:10.5px;font-weight:700">Home</span></div>
+<div onClick="{{ goBookings }}" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ navBookColor }};flex:1"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="17" rx="2.5" stroke="currentColor" stroke-width="1.9"></rect><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path></svg><span style="font-size:10.5px;font-weight:700">Bookings</span></div>
+</div>
+</sc-if>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { screen:'welcome', service:null, units:1, tier:'1br', date:'', time:'', barangay:'', landmark:'', contact:'', payment:'', gcashRef:'', trackingIndex:0, cancelled:false, rating:0, hoverRating:0, book:null, rated:false, phone:'', otp:'' };
+
+  constructor(props){ super(props); this.scrollRef = React.createRef(); this.otpRef = React.createRef(); this._t=null; }
+
+  SERVICES = {
+    cleaning:{ name:'Home Cleaning', desc:'A thorough general cleaning of your home by a vetted partner who brings their own supplies.', price:399, suffix:'', duration:'2–3 hrs', accent:'#0e6e63', tint:'#eaf3f0',
+      includes:['Sweeping & mopping of all rooms','Dusting of surfaces, fixtures & furniture','Bathroom & kitchen deep clean','Trash collection & disposal','Cleaning supplies & equipment provided'] },
+    aircon:{ name:'Aircon Cleaning & Servicing', desc:'Deep cleaning and servicing of your aircon units for cooler, cleaner, more efficient air.', price:600, suffix:'/unit', duration:'~45 min/unit', accent:'#1e6fa8', tint:'#e7f0f7',
+      includes:['Filter & front cover deep cleaning','Evaporator coil & fan blower cleaning','Drainage flush & leak inspection','Refrigerant level check','Post-service cooling performance test'] }
+  };
+
+  DATES(){ const dow=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; const mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; const base=new Date(2026,6,23); const out=[]; for(let i=0;i<7;i++){ const d=new Date(base); d.setDate(base.getDate()+i); out.push({dow:dow[d.getDay()], day:String(d.getDate()), mon:mon[d.getMonth()], full:`${dow[d.getDay()]}, ${mon[d.getMonth()]} ${d.getDate()}`}); } return out; }
+  HOME_TIERS=[{id:'studio',label:'Studio',price:399},{id:'1br',label:'1-Bedroom',price:499},{id:'2br',label:'2-Bedroom',price:699},{id:'3br',label:'3-Bedroom',price:899}];
+  TIMES=['10:00 AM','1:00 PM','4:00 PM','7:00 PM'];
+  FULL_TIMES=['1:00 PM'];
+  BRGY=['Daro','Piapi','Bantayan','Taclobo','Bajumpandan','Calindagan','Looc'];
+  STEP=[
+    {title:'Pending', d:'Finding a verified partner for you'},
+    {title:'Assigned', d:'A verified partner is confirmed for your booking'},
+    {title:'En route', d:'Your partner is on the way to you'},
+    {title:'In progress', d:'Your service is being performed'},
+    {title:'Completed', d:'Job done — see the before & after'}
+  ];
+
+  nav(screen){ this.setState({screen}, ()=>{ const el=this.scrollRef.current; if(el) el.scrollTop=0; }); }
+  peso(n){ return '₱'+n.toLocaleString('en-US'); }
+
+  componentWillUnmount(){ if(this._t) clearInterval(this._t); }
+
+  beginTracking(){
+    if(this._t) clearInterval(this._t);
+    this.setState({screen:'tracking', trackingIndex:0, cancelled:false}, ()=>{ const el=this.scrollRef.current; if(el) el.scrollTop=0; });
+    this._t = setInterval(()=>{
+      this.setState(s=>{
+        if(s.cancelled){ clearInterval(this._t); this._t=null; return {}; }
+        if(s.trackingIndex>=4){ clearInterval(this._t); this._t=null; return {}; }
+        return { trackingIndex: s.trackingIndex+1 };
+      });
+    }, 2600);
+  }
+
+  partnerFor(key){ return key==='aircon'
+    ? {name:'Jose Reyes', initials:'JR', ratingStr:'4.8', jobs:'210+ jobs', tint:'#1e6fa8'}
+    : {name:'Maria Santos', initials:'MS', ratingStr:'4.9', jobs:'340+ jobs', tint:'#0e6e63'}; }
+
+  chip(active, accent){ return { flex:'none', minWidth:'54px', padding:'10px 8px', borderRadius:'13px', border:'1.5px solid '+(active?accent:'#e3dccb'), background:active?accent:'#fff', color:active?'#fff':'#4a544f', display:'flex', flexDirection:'column', alignItems:'center', cursor:'pointer', transition:'all .15s', fontWeight:600 }; }
+  pill(active, accent){ return { padding:'10px 15px', borderRadius:'22px', border:'1.5px solid '+(active?accent:'#e3dccb'), background:active?accent:'#fff', color:active?'#fff':'#4a544f', fontSize:'13px', fontWeight:600, cursor:'pointer', transition:'all .15s' }; }
+  timePill(active, full){ if(full) return { padding:'10px 15px', borderRadius:'22px', border:'1.5px dashed #ddd6c8', background:'#f4f1e9', color:'#b3ac9c', fontSize:'13px', fontWeight:600, cursor:'not-allowed' }; return this.pill(active,'#0e6e63'); }
+  tierCard(active){ return { flex:'1 1 calc(50% - 5px)', minWidth:'0', padding:'12px 14px', borderRadius:'14px', border:'1.5px solid '+(active?'#0e6e63':'#e3dccb'), background:active?'#0e6e63':'#fff', color:active?'#fff':'#4a544f', cursor:'pointer', transition:'all .15s', display:'flex', flexDirection:'column', gap:'3px' }; }
+  solidBtn(ok){ return { width:'100%', border:'none', cursor:ok?'pointer':'not-allowed', background:ok?'#0e6e63':'#c9ccc7', color:'#fff', fontWeight:800, fontSize:'16px', padding:'16px', borderRadius:'15px', transition:'background .15s', boxShadow: ok?'0 10px 22px -8px rgba(14,110,99,.55)':'none' }; }
+  otpBox(active, filled){ return { width:'46px', height:'56px', borderRadius:'13px', border:'2px solid '+((active||filled)?'#0e6e63':'#e3dccb'), background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Bricolage Grotesque'", fontWeight:700, fontSize:'24px', color:'#17211f', transition:'border-color .15s' }; }
+  fmtPhone(p){ const d=p.replace(/\D/g,''); if(!d) return 'your number'; if(d.length<=4) return d; if(d.length<=7) return d.slice(0,4)+' '+d.slice(4); return d.slice(0,4)+' '+d.slice(4,7)+' '+d.slice(7,11); }
+
+  renderVals(){
+    const s=this.state, S=this.SERVICES, svc=S[s.service];
+    const isA = s.service==='aircon';
+    const isC = s.service==='cleaning';
+    const tierObj = this.HOME_TIERS.find(t=>t.id===s.tier) || this.HOME_TIERS[0];
+    const total = svc ? (isA ? svc.price*s.units : tierObj.price) : 0;
+    const cur = svc ? {
+      name:svc.name, desc:svc.desc, duration:svc.duration, includes:svc.includes,
+      isCleaning:isC, isAircon:isA,
+      priceLabel: isC ? 'Starting at' : 'Fixed price',
+      priceStr:this.peso(svc.price), priceSuffix: isC ? ' & up' : svc.suffix, totalStr:this.peso(total),
+      priceColorStyle:{fontFamily:"'Bricolage Grotesque'",fontWeight:700,fontSize:'20px',marginTop:'2px',color:svc.accent},
+      priceColorStyleLg:{fontFamily:"'Bricolage Grotesque'",fontWeight:700,fontSize:'22px',color:svc.accent}
+    } : { includes:[], isCleaning:false, isAircon:false, name:'', desc:'', duration:'', priceLabel:'', priceStr:'', priceSuffix:'', totalStr:'', priceColorStyle:{}, priceColorStyleLg:{} };
+
+    const dates = this.DATES().map(d=>({ ...d, style:this.chip(s.date===d.full, '#0e6e63'), onSelect:()=>this.setState({date:d.full}) }));
+    const times = this.TIMES.map(t=>{ const full=this.FULL_TIMES.includes(t); return { display: full ? t+' · Full' : t, full, style:this.timePill(s.time===t, full), onSelect: full ? ()=>{} : ()=>this.setState({time:t}) }; });
+    const tiers = this.HOME_TIERS.map(t=>({ label:t.label, priceStr:this.peso(t.price), style:this.tierCard(s.tier===t.id), onSelect:()=>this.setState({tier:t.id}) }));
+    const barangays = this.BRGY.map(b=>({ name:b, style:this.pill(s.barangay===b, '#0e6e63'), onSelect:()=>this.setState({barangay:b}) }));
+
+    const accent = svc ? svc.accent : '#0e6e63';
+    const detailAccent = isA ? '#1e6fa8' : '#0e6e63';
+    const detailTint = isA ? 'linear-gradient(160deg,#2f86c4,#1a5c92)' : 'linear-gradient(160deg,#12857a,#0a554d)';
+
+    const formValid = !!(s.date && s.time && s.barangay && s.landmark.trim() && s.contact.trim());
+    const payValid = s.payment==='cash' || (s.payment==='gcash' && s.gcashRef.trim());
+
+    const btn=(ok,bg)=>({ flex:1, border:'none', cursor:ok?'pointer':'not-allowed', background:ok?bg:'#c9ccc7', color:'#fff', fontWeight:800, fontSize:'16px', padding:'16px', borderRadius:'15px', transition:'background .15s', boxShadow: ok?'0 10px 22px -8px rgba(14,110,99,.55)':'none' });
+    const fullBtn=(ok,bg)=>({ ...btn(ok,bg), width:'100%', flex:'none' });
+
+    // order summary
+    const sumService = svc ? (svc.name + (isA ? ` · ${s.units} unit${s.units>1?'s':''}` : ` · ${tierObj.label}`)) : '';
+    const sumWhen = `${s.date}  ·  ${s.time}`;
+    const sumWhere = `${s.barangay}${s.landmark? ' · '+s.landmark : ''}`;
+
+    // tracking
+    const idx=s.trackingIndex, cancelled=s.cancelled;
+    const partner = this.partnerFor(s.service);
+    const trackSteps = this.STEP.map((st,i)=>{
+      const done = !cancelled && (i<idx || idx>=4 && i<=4 && i<idx) || (!cancelled && i<idx);
+      const isDone = !cancelled && i<idx || (!cancelled && idx>=4 && i<4) ;
+      const reallyDone = !cancelled && (i<idx || (idx>=4 && i<=3)) || (!cancelled && i<idx);
+      const dstate = cancelled ? 'todo' : (i<idx ? 'done' : (i===idx ? 'active' : 'todo'));
+      const doneFinal = idx>=4 && i<=4 ? (i<4?'done':(i===4?'active':'todo')) : dstate;
+      const state = cancelled ? (i===0?'active':'todo') : (i<idx?'done':(i===idx?'active':'todo'));
+      const isDoneF = state==='done', isActiveF = state==='active';
+      let desc = st.d;
+      if(i===1 && idx>=1 && !cancelled) desc = `${partner.name} is assigned to your booking`;
+      const dotStyle = { width:'26px', height:'26px', borderRadius:'50%', flex:'none', display:'flex', alignItems:'center', justifyContent:'center',
+        background: isDoneF?'#0e6e63':(isActiveF?'#0e6e63':'#fff'),
+        border: (isDoneF||isActiveF)?'none':'2px solid #e0d8c8',
+        boxShadow: isActiveF?'0 0 0 4px rgba(14,110,99,.14)':'none', transition:'all .3s' };
+      const titleStyle = { fontWeight:700, fontSize:'14.5px', color:(isDoneF||isActiveF)?'#17211f':'#b3ac9c', transition:'color .3s' };
+      const lineStyle = { width:'2px', height:'26px', background: isDoneF?'#0e6e63':'#ece3d2', transition:'background .3s' };
+      return { title:st.title, desc, isDone:isDoneF, isActive:isActiveF, showLine:i<4, dotStyle, titleStyle, lineStyle };
+    });
+
+    let bannerText, bannerBg, bannerColor, bannerDotBg;
+    if(cancelled){ bannerText='Booking cancelled'; bannerBg='#fbecea'; bannerColor='#c0503e'; bannerDotBg='#c0503e'; }
+    else if(idx>=4){ bannerText='Service completed'; bannerBg='#e4f3ee'; bannerColor='#0a6f5f'; bannerDotBg='#0e6e63'; }
+    else if(idx===0){ bannerText='Assigning a verified partner…'; bannerBg='#fff2df'; bannerColor='#b06f10'; bannerDotBg='#f6a840'; }
+    else { bannerText=this.STEP[idx].title; bannerBg='#eaf3f0'; bannerColor='#0a6f5f'; bannerDotBg='#0e6e63'; }
+    const trackBannerStyle={ display:'inline-flex', alignItems:'center', gap:'8px', background:bannerBg, color:bannerColor, fontWeight:700, fontSize:'13px', padding:'8px 15px', borderRadius:'22px' };
+    const trackBannerDot={ width:'8px', height:'8px', borderRadius:'50%', background:bannerDotBg, animation:(idx<4&&!cancelled)?'pulseRing 1.6s infinite':'none' };
+
+    const partnerAvatarStyle={ width:'54px', height:'54px', borderRadius:'16px', flex:'none', background:`linear-gradient(140deg,${partner.tint},#0a554d)`, color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, fontSize:'19px', fontFamily:"'Bricolage Grotesque'" };
+    const partnerAvatarStyleSm={ ...partnerAvatarStyle, width:'44px', height:'44px', borderRadius:'13px', fontSize:'16px' };
+
+    // rating stars
+    const rlabels=['','Poor','Fair','Good','Great','Excellent!'];
+    const stars=[1,2,3,4,5].map(n=>({ fill:n<=s.rating?'#f6a840':'#eee4cf', stroke:n<=s.rating?'#e6913c':'#d9cfb8', onClick:()=>this.setState({rating:n}) }));
+    const submitRatingStyle=fullBtn(s.rating>0,'#0e6e63');
+    submitRatingStyle.marginTop='24px';
+
+    // bookings list
+    const chipFor=(status)=>{ const m={Pending:['#fff2df','#b06f10'],Assigned:['#eaf3f0','#0a6f5f'],'En route':['#eaf3f0','#0a6f5f'],'In progress':['#eaf3f0','#0a6f5f'],Completed:['#e4f3ee','#0a6f5f'],Cancelled:['#fbecea','#c0503e']}; const c=m[status]||m.Pending; return {background:c[0],color:c[1],fontWeight:700,fontSize:'11.5px',padding:'5px 11px',borderRadius:'20px',whiteSpace:'nowrap'}; };
+    const iconWrap=(bg,color)=>({width:'42px',height:'42px',borderRadius:'12px',flex:'none',background:bg,display:'flex',alignItems:'center',justifyContent:'center',color});
+    const rowStyle=(active)=>({ background:'#fff', border:'1px solid '+(active?'#c9e6df':'#efe7d9'), borderRadius:'16px', padding:'15px', marginBottom:'12px', cursor:active?'pointer':'default', boxShadow: active?'0 8px 20px -14px rgba(14,110,99,.5)':'none' });
+
+    const list=[];
+    if(s.book){ const activeStatus = cancelled?'Cancelled':this.STEP[Math.min(idx,4)].title; list.push({ name:s.book.name, when:s.book.when, barangay:s.book.barangay, totalStr:s.book.totalStr, status: s.rated?'Completed':activeStatus, icon: s.book.service==='aircon'?'❄':'✦', iconStyle:iconWrap(s.book.service==='aircon'?'#e7f0f7':'#eaf3f0', s.book.service==='aircon'?'#1e6fa8':'#0e6e63'), chipStyle:chipFor(s.rated?'Completed':activeStatus), rowStyle:rowStyle(true), onOpen:()=>this.setState({screen:'tracking'}) }); }
+    list.push({ name:'Home Cleaning', when:'Jul 18, 2026 · 10:00 AM', barangay:'Piapi, near Silliman gate', totalStr:'₱499', status:'Completed', icon:'✦', iconStyle:iconWrap('#eaf3f0','#0e6e63'), chipStyle:chipFor('Completed'), rowStyle:rowStyle(false), onOpen:()=>{} });
+    list.push({ name:'Aircon Cleaning', when:'Jul 11, 2026 · 3:00 PM', barangay:'Daro, beside Lee Plaza', totalStr:'₱1,200', status:'Completed', icon:'❄', iconStyle:iconWrap('#e7f0f7','#1e6fa8'), chipStyle:chipFor('Completed'), rowStyle:rowStyle(false), onOpen:()=>{} });
+
+    return {
+      statusInk: (s.screen==='welcome') ? '#ffffff' : '#17211f',
+      scrollRef:this.scrollRef,
+      isWelcome:s.screen==='welcome', isPhone:s.screen==='phone', isOtp:s.screen==='otp', isHome:s.screen==='home', isDetail:s.screen==='detail', isForm:s.screen==='form',
+      isPayment:s.screen==='payment', isConfirm:s.screen==='confirm', isTracking:s.screen==='tracking', isCompletion:s.screen==='completion', isBookings:s.screen==='bookings',
+      showNav: s.screen==='home' || s.screen==='bookings',
+      navHomeColor: s.screen==='home'?'#0e6e63':'#b3ac9c',
+      navBookColor: s.screen==='bookings'?'#0e6e63':'#b3ac9c',
+      cur, units:s.units,
+      goHome:()=>this.nav('home'), goBookings:()=>this.nav('bookings'),
+      goPhone:()=>this.nav('phone'), goWelcome:()=>this.nav('welcome'),
+      phone:s.phone, onPhone:e=>this.setState({phone:e.target.value}),
+      phoneContinueStyle: this.solidBtn(s.phone.replace(/\D/g,'').length>=10),
+      toOtp:()=>{ if(s.phone.replace(/\D/g,'').length>=10){ this.nav('otp'); setTimeout(()=>{ if(this.otpRef.current) this.otpRef.current.focus(); },90); } },
+      phoneDisplay:this.fmtPhone(s.phone),
+      otp:s.otp, otpRef:this.otpRef,
+      onOtp:e=>this.setState({otp:(e.target.value||'').replace(/\D/g,'').slice(0,6)}),
+      otpBoxes:[0,1,2,3,4,5].map(i=>({ char:s.otp[i]||'', boxStyle:this.otpBox(i===s.otp.length, !!s.otp[i]) })),
+      focusOtp:()=>{ if(this.otpRef.current) this.otpRef.current.focus(); },
+      resendOtp:()=>this.setState({otp:''}),
+      verifyOtpStyle:this.solidBtn(s.otp.length===6),
+      verifyOtp:()=>{ if(s.otp.length===6) this.nav('home'); },
+      tiers,
+      openCleaning:()=>{ this.setState({service:'cleaning',units:1}); this.nav('detail'); },
+      openAircon:()=>{ this.setState({service:'aircon',units:1}); this.nav('detail'); },
+      backToHome:()=>this.nav('home'), backToDetail:()=>this.nav('detail'), backToForm:()=>this.nav('form'),
+      openForm:()=>this.nav('form'),
+      unitInc:()=>this.setState(st=>({units:Math.min(10,st.units+1)})), unitDec:()=>this.setState(st=>({units:Math.max(1,st.units-1)})),
+      dates, times, barangays,
+      landmark:s.landmark, contact:s.contact,
+      onLandmark:e=>this.setState({landmark:e.target.value}), onContact:e=>this.setState({contact:e.target.value}),
+      detailHeaderStyle:{ height:'190px', background:detailTint, position:'relative', display:'flex', alignItems:'flex-end', justifyContent:'center', paddingBottom:'26px' },
+      detailIconWrap:{ width:'96px', height:'96px', borderRadius:'50%', background:'rgba(255,255,255,.14)', display:'flex', alignItems:'center', justifyContent:'center' },
+      formIconWrap:{ width:'40px', height:'40px', borderRadius:'11px', flex:'none', background: isA?'#e7f0f7':'#eaf3f0', display:'flex', alignItems:'center', justifyContent:'center' },
+      continueBtnStyle:btn(formValid,'#0e6e63'),
+      toPayment:()=>{ if(formValid) this.nav('payment'); },
+      // payment
+      payGcash:s.payment==='gcash', payCash:s.payment==='cash',
+      selGcash:()=>this.setState({payment:'gcash'}), selCash:()=>this.setState({payment:'cash'}),
+      gcashRef:s.gcashRef, onGcashRef:e=>this.setState({gcashRef:e.target.value}),
+      gcashOptStyle:{ border:'2px solid '+(s.payment==='gcash'?'#0e6e63':'#e7dfd2'), background:s.payment==='gcash'?'#f5faf8':'#fff', borderRadius:'16px', padding:'15px', cursor:'pointer', transition:'all .15s' },
+      cashOptStyle:{ marginTop:'12px', border:'2px solid '+(s.payment==='cash'?'#0e6e63':'#e7dfd2'), background:s.payment==='cash'?'#f5faf8':'#fff', borderRadius:'16px', padding:'15px', cursor:'pointer', transition:'all .15s' },
+      gcashRadio:{ width:'24px', height:'24px', borderRadius:'50%', flex:'none', border:s.payment==='gcash'?'none':'2px solid #d5cdbd', background:s.payment==='gcash'?'#0e6e63':'#fff', display:'flex', alignItems:'center', justifyContent:'center' },
+      cashRadio:{ width:'24px', height:'24px', borderRadius:'50%', flex:'none', border:s.payment==='cash'?'none':'2px solid #d5cdbd', background:s.payment==='cash'?'#0e6e63':'#fff', display:'flex', alignItems:'center', justifyContent:'center' },
+      sumService, sumWhen, sumWhere,
+      confirmBtnStyle:fullBtn(payValid,'#0e6e63'),
+      confirmBooking:()=>{ if(!payValid) return; const b={ service:s.service, name:svc.name+(isA?` · ${s.units} units`:` · ${tierObj.label}`), when:sumWhen.replace('  ·  ',' · '), where:sumWhere, barangay:`${s.barangay}${s.landmark?', '+s.landmark:''}`, totalStr:this.peso(total), payLabel: s.payment==='gcash'?'GCash (verifying)':'Cash at office' }; this.setState({book:b, rated:false, trackingIndex:0, cancelled:false, rating:0}); this.nav('confirm'); },
+      book:s.book || {name:'',when:'',where:'',payLabel:'',totalStr:''},
+      startTracking:()=>this.beginTracking(),
+      // tracking
+      trackSteps, partnerVisible: idx>=1 && !cancelled, partner,
+      partnerAvatarStyle, partnerAvatarStyleSm,
+      enrouteVisible: idx===2 && !cancelled,
+      beforeAfterVisible: idx>=4 && !cancelled,
+      trackBannerStyle, trackBannerDot, trackBannerText:bannerText,
+      showRateCta: idx>=4 && !cancelled && !s.rated,
+      pushVisible: !cancelled && (idx===1 || idx===2),
+      pushText: idx===2 ? `${partner.name} is on the way to your home!` : 'Your booking has been confirmed!',
+      openCompletion:()=>this.nav('completion'),
+      // rating
+      stars, ratingLabel: rlabels[s.rating]||'Tap a star to rate',
+      submitRatingStyle,
+      submitRating:()=>{ if(s.rating>0){ this.setState({rated:true}); this.nav('bookings'); } },
+      // bookings
+      bookingList:list
+    };
+  }
+}
+</script>
+</body>
+</html>

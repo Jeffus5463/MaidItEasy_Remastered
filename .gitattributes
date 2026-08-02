@@ -1,0 +1,5 @@
+# Normalize line endings to LF in the repository regardless of a
+# contributor's local core.autocrlf setting, so line-ending differences
+# stop showing up as noise in unrelated diffs.
+* text=auto eol=lf
+*.sql text eol=lf

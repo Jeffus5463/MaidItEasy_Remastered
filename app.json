@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "MaidItEasy",
+    "slug": "maiditeasy",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "maiditeasy",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#efe9df"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ph.maiditeasy.app"
+    },
+    "android": {
+      "package": "ph.maiditeasy.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0e6e63"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-router", "expo-font"],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
