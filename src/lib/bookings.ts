@@ -101,10 +101,16 @@ export async function createBooking(input: CreateBookingInput) {
     .single();
   if (error) throw error;
 
+  // Cash is paid to the partner in person (decisions-log.md), so there's
+  // nothing for an admin to verify remotely the way there is for a GCash
+  // reference — auto-verify at booking time. GCash still starts
+  // 'awaiting_payment' (the column default) until the admin checks it
+  // against the reference number on /gcash.
   const { error: paymentError } = await supabase.from('payments').insert({
     booking_id: booking.id,
     method: input.payment,
     gcash_ref: input.payment === 'gcash' ? input.gcashRef : null,
+    status: input.payment === 'cash' ? 'verified' : 'awaiting_payment',
   });
   if (paymentError) throw paymentError;
 

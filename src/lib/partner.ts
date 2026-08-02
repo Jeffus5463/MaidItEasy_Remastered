@@ -27,13 +27,17 @@ export function useMyJobs(partnerId: string | null) {
   });
 }
 
+export interface JobWithPayment extends BookingRow {
+  payments: { method: 'gcash' | 'cash' }[];
+}
+
 export function useJob(id: string | null) {
   return useQuery({
     queryKey: ['partner-job', id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('bookings').select('*').eq('id', id).single();
+      const { data, error } = await supabase.from('bookings').select('*, payments(method)').eq('id', id).single();
       if (error) throw error;
-      return data as BookingRow;
+      return data as JobWithPayment;
     },
     enabled: !!id,
     refetchInterval: 4000,

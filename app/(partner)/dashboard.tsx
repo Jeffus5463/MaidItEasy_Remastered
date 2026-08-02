@@ -248,8 +248,8 @@ export default function PartnerDashboard() {
           <View style={styles.footerNote}>
             <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
             <Text style={styles.footerNoteText}>
-              Jobs are assigned by the dispatcher. You never collect payment — MaidItEasy handles all
-              billing.
+              Jobs are assigned by the dispatcher. GCash payments go straight to MaidItEasy — cash
+              jobs are settled with the customer directly, on site.
             </Text>
           </View>
         </View>

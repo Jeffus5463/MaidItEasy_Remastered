@@ -43,6 +43,7 @@ export default function JobDetail() {
   const svc = SERVICES[booking.service_id];
   const earn = Math.round(booking.total * COMMISSION_RATE);
   const digits = booking.contact.replace(/\D/g, '');
+  const paymentMethod = booking.payments?.[0]?.method ?? null;
 
   // Already assigned by the dispatcher, but the partner hasn't responded yet
   // until this writes accepted_at — that's what lets the dashboard/active
@@ -180,13 +181,23 @@ export default function JobDetail() {
           </View>
         </View>
 
-        <View style={styles.warningCard}>
-          <Ionicons name="card-outline" size={18} color={colors.primary} />
-          <Text style={styles.warningText}>
-            <Text style={{ fontFamily: fonts.bold }}>No payment on site.</Text> The customer settles with
-            MaidItEasy directly. Never accept cash or GCash from the customer.
-          </Text>
-        </View>
+        {paymentMethod === 'cash' ? (
+          <View style={styles.warningCard}>
+            <Ionicons name="cash-outline" size={18} color={colors.primary} />
+            <Text style={styles.warningText}>
+              <Text style={{ fontFamily: fonts.bold }}>Collect {peso(booking.total)} in cash</Text> from
+              the customer once the job is done.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.warningCard}>
+            <Ionicons name="card-outline" size={18} color={colors.primary} />
+            <Text style={styles.warningText}>
+              <Text style={{ fontFamily: fonts.bold }}>No payment on site.</Text> The customer settles with
+              MaidItEasy directly. Never accept GCash from the customer.
+            </Text>
+          </View>
+        )}
 
         {!!acceptError && <FieldError>{acceptError}</FieldError>}
       </ScrollView>

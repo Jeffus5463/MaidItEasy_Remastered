@@ -123,19 +123,30 @@ export default function Payment() {
               <Ionicons name="wallet-outline" size={20} color={colors.goldText} />
             </View>
             <View style={styles.methodBody}>
-              <Text style={styles.methodTitle}>Pay cash at office</Text>
-              <Text style={styles.methodDesc}>Settle at the MaidItEasy office</Text>
+              <Text style={styles.methodTitle}>Pay by cash</Text>
+              <Text style={styles.methodDesc}>Pay your assigned partner directly, in person</Text>
             </View>
             <View style={[styles.radio, method === 'cash' && styles.radioOn]} />
           </Pressable>
 
-          <View style={styles.safety}>
-            <Ionicons name="lock-closed" size={16} color={colors.inkSoft} />
-            <Text style={styles.safetyText}>
-              Your partner never handles money. All payments go through MaidItEasy — never pay the
-              worker directly.
-            </Text>
-          </View>
+          {method === 'gcash' && (
+            <View style={styles.safety}>
+              <Ionicons name="lock-closed" size={16} color={colors.inkSoft} />
+              <Text style={styles.safetyText}>
+                Your GCash payment goes straight to MaidItEasy — you'll never be asked to pay the
+                worker directly.
+              </Text>
+            </View>
+          )}
+
+          {method === 'cash' && (
+            <View style={styles.safety}>
+              <Ionicons name="cash-outline" size={16} color={colors.inkSoft} />
+              <Text style={styles.safetyText}>
+                Pay your assigned partner directly, in cash, once the job is done.
+              </Text>
+            </View>
+          )}
 
           {!!submitError && <FieldError>{submitError}</FieldError>}
         </ScrollView>

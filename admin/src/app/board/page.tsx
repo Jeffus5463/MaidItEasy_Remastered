@@ -47,7 +47,7 @@ export default function BoardPage() {
       if (payment.status === 'rejected') return { label: 'GCash rejected', style: chip(colors.dangerTint, colors.danger) };
       return { label: 'GCash pending', style: chip(colors.goldTint, colors.goldText) };
     }
-    return { label: 'Cash · office', style: chip('#f0e9db', '#8a7c5f') };
+    return { label: 'Cash · in person', style: chip('#f0e9db', '#8a7c5f') };
   };
 
   return (

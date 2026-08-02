@@ -25,7 +25,7 @@ export default function SummaryPage() {
 
   const bookingsToday = bookings?.filter((b) => isToday(b.date)) ?? [];
   const unassigned = bookings?.filter((b) => b.status === 'pending' && !b.partner_id) ?? [];
-  const pendingGcash = payments?.filter((p) => p.status === 'awaiting_payment') ?? [];
+  const pendingGcash = payments?.filter((p) => p.status === 'awaiting_payment' && p.method === 'gcash') ?? [];
 
   const bookingById = new Map((bookings ?? []).map((b) => [b.id, b]));
   const verifiedToday = (payments ?? []).filter((p) => {
@@ -119,7 +119,7 @@ export default function SummaryPage() {
                   </div>
                   <div style={{ width: 1, background: 'rgba(255,255,255,.18)' }} />
                   <div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,.65)' }}>Cash at office</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,.65)' }}>Cash (in person)</div>
                     <div style={{ fontWeight: 700, fontSize: 16, marginTop: 1 }}>{peso(cashTotal)}</div>
                   </div>
                 </div>

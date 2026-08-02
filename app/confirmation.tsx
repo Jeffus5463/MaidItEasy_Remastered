@@ -23,7 +23,7 @@ export default function Confirmation() {
         <Text style={styles.sub}>
           {b.payment === 'gcash'
             ? "We're verifying your GCash payment and will assign a verified partner shortly."
-            : 'Your booking is reserved. It is confirmed once payment is received at our office.'}
+            : 'Your booking is confirmed. Pay your assigned partner directly, in cash, once the job is done.'}
         </Text>
 
         <View style={styles.card}>
