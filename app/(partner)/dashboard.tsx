@@ -3,9 +3,9 @@ import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../../src/theme';
-import { SERVICES } from '../../src/data';
+import { SERVICES, toLocalIso } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
-import { formatBookingWhen } from '../../src/lib/bookings';
+import { BookingRow, formatBookingWhen } from '../../src/lib/bookings';
 import { useMyJobs } from '../../src/lib/partner';
 import { signOutPartner, useRequirePartner } from '../../src/lib/partnerAuth';
 
@@ -36,19 +36,31 @@ export default function PartnerDashboard() {
     );
   }
 
-  // The newest job the dispatcher assigned that the partner hasn't responded
-  // to yet — mine is ordered newest-first, so the first unaccepted
-  // 'assigned' one is it.
-  const incomingJob = mine?.find((j) => j.status === 'assigned' && !j.accepted_at) ?? null;
-  const hasNewJob = !!incomingJob;
-  const pendingCount = mine?.filter((j) => j.status === 'assigned' && !j.accepted_at).length ?? 0;
-  const todayCount = mine?.filter((j) => j.status !== 'cancelled').length ?? 0;
-  const scheduleTitle = hasNewJob ? "Today's schedule" : 'Recent & upcoming';
-  // Not-yet-accepted jobs only show in the "New assignment" card above, not
-  // in the schedule — that card is also what routes to the Accept/Decline
-  // screen, so a partner can't jump into the active-job flow (and straight
-  // to "On my way") before responding.
-  const scheduleJobs = (mine ?? []).filter((j) => j.status !== 'assigned' || !!j.accepted_at);
+  // Three buckets, each sorted by the job's own scheduled date/time (not
+  // created_at, which is useMyJobs' own order and reflects booking-creation
+  // order, not schedule order). 'pending' is excluded from every bucket: a
+  // Phase 4 soft-hold can set partner_id while status stays 'pending', and
+  // per CLAUDE.md a partner isn't meant to see a booking until it actually
+  // leaves 'pending' — filtering only by partner_id here isn't enough.
+  // 'cancelled' is excluded too.
+  const visibleJobs = (mine ?? []).filter((j) => j.status !== 'pending' && j.status !== 'cancelled');
+  const byWhenAsc = (a: BookingRow, b: BookingRow) => (a.date === b.date ? a.start_hour - b.start_hour : a.date < b.date ? -1 : 1);
+
+  // Awaiting: dispatched but not yet accepted/declined. All of them, not
+  // just the newest — Phase 2.8 fix (was `mine?.find(...)`, hiding every
+  // assignment but the single latest).
+  const awaitingJobs = visibleJobs.filter((j) => j.status === 'assigned' && !j.accepted_at).sort(byWhenAsc);
+  // Upcoming: accepted and not yet completed (assigned-and-accepted,
+  // en_route, or in_progress).
+  const upcomingJobs = visibleJobs.filter((j) => !!j.accepted_at && j.status !== 'completed').sort(byWhenAsc);
+  // Completed: most-recent-first. There's no completed_at column, so the
+  // job's own scheduled date/time is the best available proxy.
+  const completedJobs = visibleJobs.filter((j) => j.status === 'completed').sort((a, b) => byWhenAsc(b, a));
+
+  const pendingCount = awaitingJobs.length;
+  const hasNewJob = pendingCount > 0;
+  const todayStr = toLocalIso(new Date());
+  const todayCount = visibleJobs.filter((j) => j.date === todayStr).length;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -106,7 +118,7 @@ export default function PartnerDashboard() {
             <Ionicons name="chevron-forward" size={16} color={colors.muted} />
           </Pressable>
 
-          {incomingJob && (
+          {hasNewJob && (
             <>
               <View style={styles.pushCard}>
                 <View style={styles.pushIcon}>
@@ -115,81 +127,123 @@ export default function PartnerDashboard() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.pushLabel}>PUSH NOTIFICATION</Text>
                   <Text style={styles.pushText}>
-                    New job assigned — {formatBookingWhen(incomingJob.date, incomingJob.start_hour, incomingJob.duration_hours)}, {incomingJob.barangay}
+                    {pendingCount} new assignment{pendingCount === 1 ? '' : 's'} — respond below
                   </Text>
                 </View>
               </View>
 
               <View style={styles.newAssignmentRow}>
                 <View style={styles.pulseDot} />
-                <Text style={styles.newAssignmentTitle}>New assignment</Text>
+                <Text style={styles.newAssignmentTitle}>Awaiting your response ({pendingCount})</Text>
               </View>
 
-              <Pressable
-                style={styles.jobCard}
-                onPress={() => router.push({ pathname: '/job', params: { id: incomingJob.id } })}
-              >
-                <View style={styles.jobCardHeader}>
-                  <Ionicons name="briefcase-outline" size={15} color={colors.goldText} />
-                  <Text style={styles.jobCardHeaderText}>NEW ASSIGNMENT</Text>
-                </View>
-                <View style={styles.jobCardBody}>
-                  <View style={styles.jobCardTop}>
-                    <View style={styles.jobIcon}>
-                      {incomingJob.service_id === 'aircon' ? (
-                        <Ionicons name="snow" size={22} color={colors.blue} />
-                      ) : (
-                        <MaterialCommunityIcons name="broom" size={22} color={colors.primary} />
-                      )}
+              {awaitingJobs.map((job) => (
+                <Pressable
+                  key={job.id}
+                  style={styles.jobCard}
+                  onPress={() => router.push({ pathname: '/job', params: { id: job.id } })}
+                >
+                  <View style={styles.jobCardHeader}>
+                    <Ionicons name="briefcase-outline" size={15} color={colors.goldText} />
+                    <Text style={styles.jobCardHeaderText}>NEW ASSIGNMENT</Text>
+                  </View>
+                  <View style={styles.jobCardBody}>
+                    <View style={styles.jobCardTop}>
+                      <View style={styles.jobIcon}>
+                        {job.service_id === 'aircon' ? (
+                          <Ionicons name="snow" size={22} color={colors.blue} />
+                        ) : (
+                          <MaterialCommunityIcons name="broom" size={22} color={colors.primary} />
+                        )}
+                      </View>
+                      <View>
+                        <Text style={styles.jobService}>{SERVICES[job.service_id].name}</Text>
+                        <Text style={styles.jobWhen}>{formatBookingWhen(job.date, job.start_hour, job.duration_hours)}</Text>
+                      </View>
                     </View>
-                    <View>
-                      <Text style={styles.jobService}>{SERVICES[incomingJob.service_id].name}</Text>
-                      <Text style={styles.jobWhen}>{formatBookingWhen(incomingJob.date, incomingJob.start_hour, incomingJob.duration_hours)}</Text>
+                    <View style={styles.jobLocRow}>
+                      <Ionicons name="location-outline" size={14} color={colors.primary} />
+                      <Text style={styles.jobLocText}>
+                        <Text style={styles.jobLocBold}>{job.barangay}</Text> · {job.landmark}
+                      </Text>
+                    </View>
+                    <View style={styles.viewJobBtn}>
+                      <Text style={styles.viewJobBtnText}>View job details</Text>
                     </View>
                   </View>
-                  <View style={styles.jobLocRow}>
-                    <Ionicons name="location-outline" size={14} color={colors.primary} />
-                    <Text style={styles.jobLocText}>
-                      <Text style={styles.jobLocBold}>{incomingJob.barangay}</Text> · {incomingJob.landmark}
-                    </Text>
-                  </View>
-                  <View style={styles.viewJobBtn}>
-                    <Text style={styles.viewJobBtnText}>View job details</Text>
-                  </View>
-                </View>
-              </Pressable>
+                </Pressable>
+              ))}
             </>
           )}
 
-          <Text style={styles.scheduleTitle}>{scheduleTitle}</Text>
-          {scheduleJobs.map((job) => {
-            const done = job.status === 'completed';
-            const svc = SERVICES[job.service_id];
-            return (
-              <Pressable
-                key={job.id}
-                style={[styles.scheduleRow, done && styles.scheduleRowDone]}
-                onPress={() => router.push({ pathname: '/active', params: { id: job.id } })}
-              >
-                <View style={[styles.scheduleIcon, { backgroundColor: job.service_id === 'aircon' ? colors.blueTint : colors.primaryTintBg }]}>
-                  {job.service_id === 'aircon' ? (
-                    <Ionicons name="snow" size={18} color={colors.blue} />
-                  ) : (
-                    <MaterialCommunityIcons name="broom" size={18} color={colors.primary} />
-                  )}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.scheduleService}>{svc.name}</Text>
-                  <Text style={styles.scheduleWhen}>
-                    {formatBookingWhen(job.date, job.start_hour, job.duration_hours)} · {job.barangay}
-                  </Text>
-                </View>
-                <View style={styles.scheduleChip}>
-                  <Text style={styles.scheduleChipText}>{done ? 'Completed' : 'Upcoming'}</Text>
-                </View>
-              </Pressable>
-            );
-          })}
+          {upcomingJobs.length > 0 && (
+            <>
+              <Text style={styles.scheduleTitle}>Upcoming</Text>
+              {upcomingJobs.map((job) => {
+                const svc = SERVICES[job.service_id];
+                const inProgress = job.status === 'en_route' || job.status === 'in_progress';
+                return (
+                  <Pressable
+                    key={job.id}
+                    style={styles.scheduleRow}
+                    onPress={() => router.push({ pathname: '/active', params: { id: job.id } })}
+                  >
+                    <View style={[styles.scheduleIcon, { backgroundColor: job.service_id === 'aircon' ? colors.blueTint : colors.primaryTintBg }]}>
+                      {job.service_id === 'aircon' ? (
+                        <Ionicons name="snow" size={18} color={colors.blue} />
+                      ) : (
+                        <MaterialCommunityIcons name="broom" size={18} color={colors.primary} />
+                      )}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.scheduleService}>{svc.name}</Text>
+                      <Text style={styles.scheduleWhen}>
+                        {formatBookingWhen(job.date, job.start_hour, job.duration_hours)} · {job.barangay}
+                      </Text>
+                    </View>
+                    <View style={[styles.scheduleChip, inProgress && styles.scheduleChipActive]}>
+                      <Text style={[styles.scheduleChipText, inProgress && styles.scheduleChipActiveText]}>
+                        {inProgress ? 'In progress' : 'Upcoming'}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </>
+          )}
+
+          {completedJobs.length > 0 && (
+            <>
+              <Text style={styles.scheduleTitle}>Completed</Text>
+              {completedJobs.map((job) => {
+                const svc = SERVICES[job.service_id];
+                return (
+                  <Pressable
+                    key={job.id}
+                    style={[styles.scheduleRow, styles.scheduleRowDone]}
+                    onPress={() => router.push({ pathname: '/completed', params: { id: job.id } })}
+                  >
+                    <View style={[styles.scheduleIcon, { backgroundColor: job.service_id === 'aircon' ? colors.blueTint : colors.primaryTintBg }]}>
+                      {job.service_id === 'aircon' ? (
+                        <Ionicons name="snow" size={18} color={colors.blue} />
+                      ) : (
+                        <MaterialCommunityIcons name="broom" size={18} color={colors.primary} />
+                      )}
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.scheduleService}>{svc.name}</Text>
+                      <Text style={styles.scheduleWhen}>
+                        {formatBookingWhen(job.date, job.start_hour, job.duration_hours)} · {job.barangay}
+                      </Text>
+                    </View>
+                    <View style={styles.scheduleChip}>
+                      <Text style={styles.scheduleChipText}>Completed</Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </>
+          )}
 
           <View style={styles.footerNote}>
             <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
@@ -335,6 +389,8 @@ const styles = StyleSheet.create({
   scheduleWhen: { fontFamily: fonts.medium, fontSize: 12, color: colors.muted, marginTop: 1 },
   scheduleChip: { backgroundColor: colors.primaryTintBg, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill },
   scheduleChipText: { fontFamily: fonts.bold, fontSize: 11, color: colors.primaryDark },
+  scheduleChipActive: { backgroundColor: colors.goldTint },
+  scheduleChipActiveText: { color: colors.goldText },
   footerNote: {
     marginTop: 16,
     backgroundColor: colors.primaryTintBg,

@@ -136,6 +136,28 @@ export async function getJobPhotoUrl(pathOrUrl: string): Promise<string> {
   return data.signedUrl;
 }
 
+// Resolves a completed job's stored before/after photos to fresh signed
+// URLs. Needed because completed.tsx can now be reached from the
+// dashboard's "Completed" list for a job finished in an earlier session,
+// not just right after uploadJobPhoto() in the current one — so it can't
+// rely on partnerStore's local (session-only) photo URIs.
+export function useJobPhotos(bookingId: string | null) {
+  return useQuery({
+    queryKey: ['partner-job-photos', bookingId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('job_photos').select('kind, url').eq('booking_id', bookingId);
+      if (error) throw error;
+      const before = data.find((p) => p.kind === 'before');
+      const after = data.find((p) => p.kind === 'after');
+      return {
+        before: before ? await getJobPhotoUrl(before.url) : null,
+        after: after ? await getJobPhotoUrl(after.url) : null,
+      };
+    },
+    enabled: !!bookingId,
+  });
+}
+
 // Uploads a picked photo (local file:// / blob: URI from expo-image-picker) to
 // the job-photos bucket, records the storage path in job_photos, and returns
 // a signed URL for immediate display in the current session.

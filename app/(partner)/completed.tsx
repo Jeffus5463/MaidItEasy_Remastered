@@ -5,17 +5,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
 import { COMMISSION_RATE, SERVICES, peso } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
-import { useJob } from '../../src/lib/partner';
+import { formatBookingWhen } from '../../src/lib/bookings';
+import { useJob, useJobPhotos } from '../../src/lib/partner';
 import { useRequirePartner } from '../../src/lib/partnerAuth';
 import { usePartnerJob } from '../../src/partnerStore';
-
-const completedTime = `Today, ${new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
 
 export default function JobCompleted() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { partner, ready } = useRequirePartner();
   const { data: booking, isLoading, isError, refetch } = useJob(id ?? null);
-  const { beforePhoto, afterPhoto, reset } = usePartnerJob();
+  const { data: photos } = useJobPhotos(id ?? null);
+  const { reset } = usePartnerJob();
   const firstName = partner?.name.split(' ')[0] ?? '';
 
   const backToDashboard = () => {
@@ -56,15 +56,15 @@ export default function JobCompleted() {
         </Text>
 
         <View style={styles.photosRow}>
-          <PhotoThumb uri={beforePhoto} label="Before" />
-          <PhotoThumb uri={afterPhoto} label="After" />
+          <PhotoThumb uri={photos?.before ?? null} label="Before" />
+          <PhotoThumb uri={photos?.after ?? null} label="After" />
         </View>
 
         <View style={styles.summaryCard}>
           <Row k="Service" v={svc.name} />
           <Row k="Customer" v={booking.contact} />
           <Row k="Location" v={booking.barangay} />
-          <Row k="Completed" v={completedTime} />
+          <Row k="Completed" v={formatBookingWhen(booking.date, booking.start_hour, booking.duration_hours)} />
           <View style={styles.divider} />
           <View style={styles.earnRow}>
             <Text style={styles.earnLabel}>
