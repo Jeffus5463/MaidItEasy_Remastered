@@ -54,12 +54,19 @@ export default function Tracking() {
 
   const cancelled = booking.status === 'cancelled';
   const expired = cancelled && booking.cancel_reason === 'expired-unpaid';
-  const idx = STATUS_RANK[booking.status] ?? 0;
+  // status flips to 'assigned' the moment the admin dispatches it — but
+  // that's a push to the partner, not a confirmation. The partner can still
+  // decline (back to 'pending' via release_and_rehold), so until
+  // accepted_at is actually set, treat it the same as still-pending for
+  // display: same rank, no named partner. Otherwise the customer sees "your
+  // partner is confirmed" before the partner has responded at all.
+  const confirmed = booking.status !== 'assigned' || !!booking.accepted_at;
+  const idx = confirmed ? STATUS_RANK[booking.status] ?? 0 : 0;
   // partner_id may already be a soft hold (Phase 4) while status is still
   // 'pending' — that's not a dispatch yet (the admin still confirms), so
   // don't show a specific worker until it's real, matching the "Finding a
   // verified partner for you" copy on the Pending step below.
-  const partner = booking.status !== 'pending' ? booking.partners : null;
+  const partner = confirmed && booking.status !== 'pending' ? booking.partners : null;
   const paymentRejected = booking.payments?.some((p) => p.status === 'rejected');
 
   return (

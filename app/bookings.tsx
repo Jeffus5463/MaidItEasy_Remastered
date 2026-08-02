@@ -42,7 +42,12 @@ export default function Bookings() {
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {bookings.map((booking) => {
             const svc = SERVICES[booking.service_id];
-            const status = statusLabel(booking.status);
+            // 'assigned' is a push to the partner, not a confirmation — the
+            // partner can still decline it back to 'pending'. Don't show
+            // "Assigned" until accepted_at is actually set, same reasoning
+            // as the tracking screen (app/tracking.tsx).
+            const dispatched = booking.status === 'assigned' && !booking.accepted_at;
+            const status = statusLabel(dispatched ? 'pending' : booking.status);
             const tint = STATUS_TINTS[status];
             const barangay = [booking.barangay, booking.landmark].filter(Boolean).join(', ');
             return (
