@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
 import { COMMISSION_RATE, SERVICES, peso } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
@@ -17,6 +17,7 @@ export default function JobCompleted() {
   const { data: photos } = useJobPhotos(id ?? null);
   const { reset } = usePartnerJob();
   const firstName = partner?.name.split(' ')[0] ?? '';
+  const insets = useSafeAreaInsets();
 
   const backToDashboard = () => {
     reset();
@@ -81,7 +82,7 @@ export default function JobCompleted() {
         </View>
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable style={styles.primaryBtn} onPress={backToDashboard}>
           <Text style={styles.primaryBtnText}>Back to dashboard</Text>
         </Pressable>
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
   earnValue: { fontFamily: fonts.display, fontSize: 18, color: colors.primary },
   noteCard: { alignSelf: 'stretch', marginTop: 14, backgroundColor: colors.primaryTintBg, borderRadius: radius.md, padding: 12 },
   noteText: { fontFamily: fonts.medium, fontSize: 11.5, color: colors.primaryDark, lineHeight: 17 },
-  footer: { paddingHorizontal: 24, paddingBottom: 12, paddingTop: 8 },
+  footer: { paddingHorizontal: 24, paddingTop: 8 },
   primaryBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 16, alignItems: 'center', ...shadow.cta },
   primaryBtnText: { fontFamily: fonts.extrabold, fontSize: 16, color: colors.white },
 });

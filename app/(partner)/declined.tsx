@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
 import { LoadingState } from '../../src/components/UI';
 import { useRequirePartner } from '../../src/lib/partnerAuth';
@@ -10,6 +10,7 @@ import { usePartnerJob } from '../../src/partnerStore';
 export default function JobDeclined() {
   const { ready } = useRequirePartner();
   const { declineReason, reset } = usePartnerJob();
+  const insets = useSafeAreaInsets();
 
   const backToDashboard = () => {
     reset();
@@ -37,7 +38,7 @@ export default function JobDeclined() {
         </Text>
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable style={styles.primaryBtn} onPress={backToDashboard}>
           <Text style={styles.primaryBtnText}>Back to dashboard</Text>
         </Pressable>
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.display, fontSize: 23, color: colors.ink, marginTop: 20 },
   sub: { fontFamily: fonts.regular, fontSize: 14, color: colors.inkSoft, textAlign: 'center', marginTop: 8, lineHeight: 21, maxWidth: 280 },
   reason: { fontFamily: fonts.bold, color: '#5c5240' },
-  footer: { paddingHorizontal: 24, paddingBottom: 12, paddingTop: 8 },
+  footer: { paddingHorizontal: 24, paddingTop: 8 },
   primaryBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 16, alignItems: 'center', ...shadow.cta },
   primaryBtnText: { fontFamily: fonts.extrabold, fontSize: 16, color: colors.white },
 });

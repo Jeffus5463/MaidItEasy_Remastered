@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../../src/theme';
 import { SERVICES } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
@@ -32,6 +32,7 @@ export default function ActiveJob() {
   const [error, setError] = useState('');
   const [uploadingBefore, setUploadingBefore] = useState(false);
   const [uploadingAfter, setUploadingAfter] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const pickAndUpload = async (kind: 'before' | 'after') => {
     if (!id) return;
@@ -221,7 +222,7 @@ export default function ActiveJob() {
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable
           style={[styles.primaryBtn, !primaryEnabled && styles.primaryBtnDisabled]}
           disabled={!primaryEnabled}
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
   photoLabel: { textAlign: 'center', fontFamily: fonts.bold, fontSize: 11.5, color: colors.muted, marginTop: 6 },
   errorCard: { marginTop: 14, backgroundColor: colors.primaryTintBg, borderRadius: radius.md, padding: 12, flexDirection: 'row', gap: 10, alignItems: 'center' },
   errorText: { flex: 1, fontFamily: fonts.medium, fontSize: 12.5, color: colors.danger },
-  footer: { paddingHorizontal: 22, paddingBottom: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.cream },
+  footer: { paddingHorizontal: 22, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.cream },
   primaryBtn: { backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 16, alignItems: 'center' },
   primaryBtnDisabled: { backgroundColor: colors.disabled },
   primaryBtnText: { fontFamily: fonts.extrabold, fontSize: 16, color: colors.white },

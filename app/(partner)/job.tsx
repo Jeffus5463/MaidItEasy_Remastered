@@ -2,7 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
 import { COMMISSION_RATE, DECLINE_REASONS, SERVICES, peso } from '../../src/data';
 import { ErrorState, FieldError, LoadingState } from '../../src/components/UI';
@@ -23,6 +23,7 @@ export default function JobDetail() {
   const [declineError, setDeclineError] = useState('');
   const [accepting, setAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState('');
+  const insets = useSafeAreaInsets();
 
   if (!ready || isLoading) {
     return (
@@ -202,7 +203,7 @@ export default function JobDetail() {
         {!!acceptError && <FieldError>{acceptError}</FieldError>}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>
         <Pressable style={styles.declineBtn} onPress={() => setDeclineOpen(true)} disabled={accepting}>
           <Text style={styles.declineBtnText}>Decline</Text>
         </Pressable>
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
   customerActionBtn: { width: 40, height: 40, borderRadius: 11, backgroundColor: colors.primaryTintBg, alignItems: 'center', justifyContent: 'center' },
   warningCard: { marginTop: 14, backgroundColor: colors.primaryTintBg, borderRadius: radius.md, padding: 12, flexDirection: 'row', gap: 10, alignItems: 'center' },
   warningText: { flex: 1, fontFamily: fonts.medium, fontSize: 11.5, color: colors.primaryDark, lineHeight: 17 },
-  footer: { flexDirection: 'row', gap: 11, paddingHorizontal: 22, paddingBottom: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.cream },
+  footer: { flexDirection: 'row', gap: 11, paddingHorizontal: 22, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.cream },
   declineBtn: { width: 110, borderWidth: 1.5, borderColor: '#e6c9c2', backgroundColor: colors.white, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   declineBtnText: { fontFamily: fonts.bold, fontSize: 15, color: colors.danger },
   acceptBtn: { flex: 1, backgroundColor: colors.primary, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', paddingVertical: 15, ...shadow.cta },
