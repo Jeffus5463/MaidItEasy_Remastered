@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useBookings, usePartners, usePayments, useUnassignBooking } from '@/lib/data';
 import { customerLabel, formatWhen, serviceLabel } from '@/lib/format';
-import { colors } from '@/theme';
+import { colors, fonts } from '@/theme';
 import { AssignModal } from '@/components/AssignModal';
 import { CancelBookingModal } from '@/components/CancelBookingModal';
 import { Avatar, TopBar, chip, svcIconWrap } from '@/components/shared';
-import { AirconIcon, AlertIcon, BoardIcon, BroomIcon, ListIcon, PlusIcon, ShieldIcon } from '@/components/icons';
+import { AirconIcon, AlertIcon, BoardIcon, BroomIcon, CloseIcon, ListIcon, PlusIcon, SearchIcon, ShieldIcon } from '@/components/icons';
 import { BookingRow, BookingStatus } from '@/lib/types';
 
 const COLUMNS: { key: BookingStatus; title: string; bg: string; border: string; ink: string; dot: string; countBg: string }[] = [
@@ -50,6 +50,7 @@ export default function BoardPage() {
   const [assigning, setAssigning] = useState<BookingRow | null>(null);
   const [cancelling, setCancelling] = useState<BookingRow | null>(null);
   const [view, setView] = useState<'pipeline' | 'table'>('pipeline');
+  const [query, setQuery] = useState('');
 
   const partnerById = new Map((partners ?? []).map((p) => [p.id, p]));
   const paymentByBooking = new Map((payments ?? []).map((p) => [p.booking_id, p]));
@@ -74,6 +75,24 @@ export default function BoardPage() {
     unassignable: UNASSIGNABLE.includes(b.status),
   });
 
+  // Free-text match across the fields a dispatcher would actually search
+  // by: customer name/contact, barangay + landmark, the ref code shown on
+  // every card/row, and the assigned partner's name. Multi-word queries
+  // require every word to appear somewhere (not as one exact phrase), so
+  // "jeff bajumpandan" narrows to Jeff's Bajumpandan job regardless of
+  // field order.
+  const searchTerms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matchesSearch = (b: BookingRow) => {
+    if (searchTerms.length === 0) return true;
+    const partner = b.partner_id ? partnerById.get(b.partner_id) : null;
+    const ref = b.id.slice(0, 4).toUpperCase();
+    const haystack = [customerLabel(b), b.contact, b.barangay, b.landmark, ref, partner?.name ?? '']
+      .join(' ')
+      .toLowerCase();
+    return searchTerms.every((t) => haystack.includes(t));
+  };
+  const filtered = bookings ? bookings.filter(matchesSearch) : [];
+
   const segBase: React.CSSProperties = { cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: '8px 15px', borderRadius: 10, fontWeight: 700, fontSize: '13px', transition: 'all .15s', border: 'none', background: 'transparent' };
   const segStyle = (active: boolean): React.CSSProperties =>
     active
@@ -89,20 +108,58 @@ export default function BoardPage() {
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-            <div style={{ fontSize: 13, color: colors.muted, fontWeight: 600 }}>{bookings.length} bookings · grouped by status</div>
-            <div style={{ display: 'flex', gap: 4, background: '#fff', border: `1px solid ${colors.borderSoft}`, borderRadius: 13, padding: 4 }}>
-              <button type="button" onClick={() => setView('pipeline')} style={segStyle(view === 'pipeline')}>
-                <BoardIcon size={15} color={view === 'pipeline' ? '#fff' : colors.muted} />
-                Pipeline
-              </button>
-              <button type="button" onClick={() => setView('table')} style={segStyle(view === 'table')}>
-                <ListIcon size={15} color={view === 'table' ? '#fff' : colors.muted} />
-                Table
-              </button>
+            <div style={{ fontSize: 13, color: colors.muted, fontWeight: 600 }}>
+              {searchTerms.length > 0
+                ? `${filtered.length} of ${bookings.length} bookings match “${query.trim()}”`
+                : `${bookings.length} bookings · grouped by status`}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: `1px solid ${colors.borderSoft}`, borderRadius: 11, padding: '9px 13px', minWidth: 220 }}>
+                <SearchIcon size={15} color={colors.muted} />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search bookings…"
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: colors.ink, flex: 1, minWidth: 0, fontFamily: fonts.body }}
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery('')}
+                    aria-label="Clear search"
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, display: 'flex', flex: 'none' }}
+                  >
+                    <CloseIcon size={13} color={colors.muted} />
+                  </button>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 4, background: '#fff', border: `1px solid ${colors.borderSoft}`, borderRadius: 13, padding: 4 }}>
+                <button type="button" onClick={() => setView('pipeline')} style={segStyle(view === 'pipeline')}>
+                  <BoardIcon size={15} color={view === 'pipeline' ? '#fff' : colors.muted} />
+                  Pipeline
+                </button>
+                <button type="button" onClick={() => setView('table')} style={segStyle(view === 'table')}>
+                  <ListIcon size={15} color={view === 'table' ? '#fff' : colors.muted} />
+                  Table
+                </button>
+              </div>
             </div>
           </div>
 
-          {view === 'table' ? (
+          {filtered.length === 0 ? (
+            <div style={{ background: '#fff', border: `1px solid ${colors.cardBorder}`, borderRadius: 16, padding: '32px 20px', textAlign: 'center', color: colors.muted, fontSize: 13.5 }}>
+              {bookings.length === 0 ? (
+                'No bookings yet.'
+              ) : (
+                <>
+                  No bookings match “{query.trim()}”.{' '}
+                  <button type="button" onClick={() => setQuery('')} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: colors.primary, fontWeight: 700, padding: 0, fontSize: 13.5 }}>
+                    Clear search
+                  </button>
+                </>
+              )}
+            </div>
+          ) : view === 'table' ? (
             <div style={{ background: '#fff', border: `1px solid ${colors.cardBorder}`, borderRadius: 18, overflow: 'hidden' }}>
               <div style={{ display: 'grid', gridTemplateColumns: TABLE_GRID, gap: 10, padding: '12px 14px', fontSize: 10, fontWeight: 800, color: colors.faint, letterSpacing: '.04em', textTransform: 'uppercase', background: colors.inputBg }}>
                 <span>Service</span>
@@ -114,7 +171,7 @@ export default function BoardPage() {
                 <span>Actions</span>
               </div>
               {COLUMNS.map((col) => {
-                const rows = bookings.filter((b) => b.status === col.key);
+                const rows = filtered.filter((b) => b.status === col.key);
                 if (rows.length === 0) return null;
                 return (
                   <div key={col.key}>
@@ -214,7 +271,7 @@ export default function BoardPage() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 14, alignItems: 'start' }}>
               {COLUMNS.map((col) => {
-                const cards = bookings.filter((b) => b.status === col.key);
+                const cards = filtered.filter((b) => b.status === col.key);
                 return (
                   <div key={col.key} style={{ background: col.bg, border: `1px solid ${col.border}`, borderRadius: 16, padding: 12, minHeight: 120 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 4px 10px' }}>

@@ -1,10 +1,10 @@
 // MaidItEasy catalog + booking data — mirrors the design prototype exactly.
-import { colors } from './theme';
+import { colors } from "./theme";
 
-export const peso = (n: number) => '₱' + n.toLocaleString('en-US');
+export const peso = (n: number) => "₱" + n.toLocaleString("en-US");
 
-export type ServiceId = 'cleaning' | 'aircon';
-export type PricingModel = 'per_hour' | 'per_unit';
+export type ServiceId = "cleaning" | "aircon";
+export type PricingModel = "per_hour" | "per_unit";
 
 export interface Service {
   id: ServiceId;
@@ -28,45 +28,45 @@ export interface Service {
 
 export const SERVICES: Record<ServiceId, Service> = {
   cleaning: {
-    id: 'cleaning',
-    name: 'Home Cleaning',
-    desc: 'A thorough general cleaning of your home by a vetted partner who brings their own supplies.',
+    id: "cleaning",
+    name: "Home Cleaning",
+    desc: "A thorough general cleaning of your home by a vetted partner who brings their own supplies.",
     price: 399,
-    suffix: '/hr',
-    duration: '2–3 hrs',
+    suffix: "/hr",
+    duration: "2–3 hrs",
     accent: colors.primary,
     tint: colors.primaryTintBg,
-    priceLabel: 'Per hour',
-    pricingModel: 'per_hour',
+    priceLabel: "Per hour",
+    pricingModel: "per_hour",
     hourlyRate: 399,
     estimatedMinutesPerUnit: null,
     includes: [
-      'Sweeping & mopping of all rooms',
-      'Dusting of surfaces, fixtures & furniture',
-      'Bathroom & kitchen deep clean',
-      'Trash collection & disposal',
-      'Cleaning supplies & equipment provided',
+      "Sweeping & mopping of all rooms",
+      "Dusting of surfaces, fixtures & furniture",
+      "Bathroom & kitchen deep clean",
+      "Trash collection & disposal",
+      "Cleaning supplies & equipment provided",
     ],
   },
   aircon: {
-    id: 'aircon',
-    name: 'Aircon Cleaning & Servicing',
-    desc: 'Deep cleaning and servicing of your aircon units for cooler, cleaner, more efficient air.',
+    id: "aircon",
+    name: "Aircon Cleaning & Servicing",
+    desc: "Deep cleaning and servicing of your aircon units for cooler, cleaner, more efficient air.",
     price: 600,
-    suffix: '/unit',
-    duration: '~45 min/unit',
+    suffix: "/unit",
+    duration: "~45 min/unit",
     accent: colors.blue,
     tint: colors.blueTint,
-    priceLabel: 'Fixed price',
-    pricingModel: 'per_unit',
+    priceLabel: "Fixed price",
+    pricingModel: "per_unit",
     hourlyRate: null,
     estimatedMinutesPerUnit: 45,
     includes: [
-      'Filter & front cover deep cleaning',
-      'Evaporator coil & fan blower cleaning',
-      'Drainage flush & leak inspection',
-      'Refrigerant level check',
-      'Post-service cooling performance test',
+      "Filter & front cover deep cleaning",
+      "Evaporator coil & fan blower cleaning",
+      "Drainage flush & leak inspection",
+      "Refrigerant level check",
+      "Post-service cooling performance test",
     ],
   },
 };
@@ -86,7 +86,7 @@ export const MIN_BOOKING_HOURS = 2;
 
 // "9:00 AM" for a 24h hour (0-23).
 export function formatHour12(hour: number) {
-  const period = hour >= 12 ? 'PM' : 'AM';
+  const period = hour >= 12 ? "PM" : "AM";
   const h = hour % 12 === 0 ? 12 : hour % 12;
   return `${h}:00 ${period}`;
 }
@@ -94,17 +94,25 @@ export function formatHour12(hour: number) {
 // (9, 2) -> "9:00–11:00 AM" · (11, 2) -> "11:00 AM–1:00 PM"
 export function formatHourRange(startHour: number, durationHours: number) {
   const endHour = startHour + durationHours;
-  const startPeriod = startHour >= 12 ? 'PM' : 'AM';
-  const endPeriod = endHour >= 12 ? 'PM' : 'AM';
+  const startPeriod = startHour >= 12 ? "PM" : "AM";
+  const endPeriod = endHour >= 12 ? "PM" : "AM";
   const startLabel = formatHour12(startHour);
   const endLabel = formatHour12(endHour % 24);
   if (startPeriod === endPeriod) {
-    return `${startLabel.replace(` ${startPeriod}`, '')}–${endLabel}`;
+    return `${startLabel.replace(` ${startPeriod}`, "")}–${endLabel}`;
   }
   return `${startLabel}–${endLabel}`;
 }
 
-export const BARANGAYS = ['Daro', 'Piapi', 'Bantayan', 'Taclobo', 'Bajumpandan', 'Calindagan', 'Looc'];
+export const BARANGAYS = [
+  "Daro",
+  "Piapi",
+  "Bantayan",
+  "Taclobo",
+  "Bajumpandan",
+  "Calindagan",
+  "Looc",
+];
 
 export interface TrackStep {
   title: string;
@@ -112,14 +120,20 @@ export interface TrackStep {
 }
 
 export const TRACK_STEPS: TrackStep[] = [
-  { title: 'Pending', d: 'Finding a verified partner for you' },
-  { title: 'Assigned', d: 'A verified partner is confirmed for your booking' },
-  { title: 'En route', d: 'Your partner is on the way to you' },
-  { title: 'In progress', d: 'Your service is being performed' },
-  { title: 'Completed', d: 'Job done — see the before & after' },
+  { title: "Pending", d: "Finding a verified partner for you" },
+  { title: "Assigned", d: "A verified partner is confirmed for your booking" },
+  { title: "En route", d: "Your partner is on the way to you" },
+  { title: "In progress", d: "Your service is being performed" },
+  { title: "Completed", d: "Job done — see the before & after" },
 ];
 
-export type BookingStatus = 'Pending' | 'Assigned' | 'En route' | 'In progress' | 'Completed' | 'Cancelled';
+export type BookingStatus =
+  | "Pending"
+  | "Assigned"
+  | "En route"
+  | "In progress"
+  | "Completed"
+  | "Cancelled";
 
 // Next 7 bookable dates, starting "tomorrow" relative to now.
 export interface DateOpt {
@@ -137,14 +151,27 @@ export interface DateOpt {
 // on screen, so this is the one place either gets computed.
 export function toLocalIso(d: Date): string {
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
 export function nextDates(count = 7): DateOpt[] {
-  const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const mon = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const mon = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const base = new Date();
   base.setDate(base.getDate() + 1);
   const out: DateOpt[] = [];
@@ -162,12 +189,12 @@ export function nextDates(count = 7): DateOpt[] {
   return out;
 }
 
-export const GCASH_NUMBER = '0917 555 0123';
-export const OFFICE = 'MaidItEasy office along Perdices St., Dumaguete';
+export const GCASH_NUMBER = "0917 555 0123";
+export const OFFICE = "MaidItEasy office along Perdices St., Dumaguete";
 
 // There is intentionally no customer self-cancel — changes/cancellations
 // go through a phone call, so this is the one place that number lives.
-export const SUPPORT_PHONE = '0917 555 0100';
+export const SUPPORT_PHONE = "0917 555 0100";
 
 export const DUMAGUETE_CENTER = { latitude: 9.3068, longitude: 123.3054 };
 
@@ -177,8 +204,8 @@ export const DUMAGUETE_CENTER = { latitude: 9.3068, longitude: 123.3054 };
 export const COMMISSION_RATE = 0.2;
 
 export const DECLINE_REASONS = [
-  'Schedule conflict',
-  'Location too far',
-  'Not equipped for this job',
-  'Personal emergency',
+  "Schedule conflict",
+  "Location too far",
+  "Not equipped for this job",
+  "Personal emergency",
 ];
