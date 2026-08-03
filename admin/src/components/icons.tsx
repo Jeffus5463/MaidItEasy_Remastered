@@ -159,6 +159,14 @@ export function ChevronRightIcon({ size = 17, color = '#c98a2e' }: { size?: numb
   );
 }
 
+export function ListIcon({ color = 'currentColor', size = 15 }: { color?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M3 6h18M3 12h18M3 18h18" stroke={color} strokeWidth="1.9" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function ShieldIcon({ size = 12 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

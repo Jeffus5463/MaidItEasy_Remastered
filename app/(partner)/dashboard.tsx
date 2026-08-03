@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../../src/theme';
 import { SERVICES, toLocalIso } from '../../src/data';
@@ -12,6 +13,27 @@ import { signOutPartner, useRequirePartner } from '../../src/lib/partnerAuth';
 export default function PartnerDashboard() {
   const { partner, ready } = useRequirePartner();
   const { data: mine, isLoading: loadingMine, isError: errorMine, refetch: refetchMine } = useMyJobs(partner?.id ?? null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Job list has no polling — it's the "navigate away and come back" screen,
+  // not a screen a partner stares at waiting for a status flip (that's
+  // useJob's 4s poll on the active-job screen). Refetch on focus covers the
+  // common case cheaply; pull-to-refresh covers "I'm still on this screen
+  // and want to check now" without whole-list polling.
+  useFocusEffect(
+    useCallback(() => {
+      refetchMine();
+    }, [refetchMine])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetchMine();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const loading = !ready || loadingMine;
 
@@ -64,7 +86,11 @@ export default function PartnerDashboard() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      >
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View>

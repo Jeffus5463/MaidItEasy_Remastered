@@ -109,6 +109,43 @@ input:focus,textarea:focus{outline:none}
 <!-- ==================== BOOKING BOARD ==================== -->
 <sc-if value="{{ isBoard }}">
 <div style="animation:fadeUp .3s ease both">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+<div style="font-size:13px;color:#8a8578;font-weight:600">{{ totalBookings }} bookings today · grouped by pipeline stage</div>
+<div style="display:flex;gap:4px;background:#fff;border:1px solid #e5ddcd;border-radius:13px;padding:4px">
+<div onClick="{{ setPipeline }}" style="{{ pipeStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="4" height="16" rx="1" stroke="currentColor" stroke-width="1.9"/><rect x="10" y="4" width="4" height="16" rx="1" stroke="currentColor" stroke-width="1.9"/><rect x="17" y="4" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.9"/></svg>Pipeline</div>
+<div onClick="{{ setTable }}" style="{{ tableStyle }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>Table</div>
+</div>
+</div>
+
+<sc-if value="{{ isTable }}">
+<div style="background:#fff;border:1px solid #ece4d4;border-radius:18px;overflow:hidden">
+<div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.9fr) minmax(0,1.6fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,1.3fr);gap:10px;padding:12px 14px;font-size:10px;font-weight:800;color:#a49e8e;letter-spacing:.04em;text-transform:uppercase;background:#faf6ee"><span>Service</span><span>Time</span><span>Location</span><span>Customer</span><span>Pay</span><span>Partner</span></div>
+<sc-for list="{{ boardGroups }}" as="g" hint-placeholder-count="5">
+<sc-if value="{{ g.count }}">
+<div style="{{ g.headStyle }}"><span style="width:8px;height:8px;border-radius:50%;background:{{ g.dot }}"></span><span style="font-weight:800;font-size:12px;color:{{ g.ink }}">{{ g.title }}</span><span style="font-size:11px;font-weight:800;color:{{ g.ink }};background:{{ g.countBg }};padding:1px 8px;border-radius:20px">{{ g.count }}</span></div>
+<sc-for list="{{ g.rows }}" as="c" hint-placeholder-count="2">
+<div style="{{ c.rowStyle }}">
+<div style="min-width:0"><div style="display:flex;align-items:center;gap:7px;font-weight:700"><span style="{{ c.svcDot }}"></span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.service }}</span></div><div style="font-size:10.5px;font-weight:800;color:#b3ac9c;margin-top:2px;padding-left:14px">{{ c.ref }}</div></div>
+<span style="color:#5c655f;font-weight:600">{{ c.time }}</span>
+<div style="min-width:0;color:#8a8578"><b style="color:#5c655f">{{ c.barangay }}</b> · {{ c.landmark }}</div>
+<span style="color:#5c655f;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.customer }}</span>
+<span><span style="{{ c.payStyle }}">{{ c.payLabel }}</span></span>
+<div style="min-width:0">
+<sc-if value="{{ c.unassigned }}">
+<button onClick="{{ c.onAssign }}" style="border:none;cursor:pointer;background:#0e6e63;color:#fff;font-weight:800;font-size:11.5px;padding:7px 12px;border-radius:9px;display:inline-flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>Assign</button>
+</sc-if>
+<sc-if value="{{ c.assigned }}">
+<div style="display:flex;align-items:center;gap:7px;min-width:0"><div style="{{ c.avatarStyle }}">{{ c.partnerInitials }}</div><span style="font-weight:700;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.partner }}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="flex:none"><path d="M12 2l7 3v6c0 4.6-3 8-7 9-4-1-7-4.4-7-9V5l7-3z" fill="#0e6e63"/><path d="m9 12 2 2 4-4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</sc-if>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPipeline }}" hint-placeholder-val="{{ true }}">
 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:start">
 <sc-for list="{{ columns }}" as="col" hint-placeholder-count="5">
 <div style="background:{{ col.bg }};border:1px solid {{ col.border }};border-radius:16px;padding:12px;min-height:120px">
@@ -132,6 +169,7 @@ input:focus,textarea:focus{outline:none}
 </div>
 </sc-for>
 </div>
+</sc-if>
 </div>
 </sc-if>
 
@@ -291,6 +329,7 @@ input:focus,textarea:focus{outline:none}
 class Component extends DCLogic {
   state = { view:'summary', assignOpen:false, assignRef:null, assignPick:null, toast:'', bookings:null, payments:null, catalog:null, workers:null, addOpen:false, nwName:'', nwContact:'', nwServices:[], nwCommission:'20', nwVerified:false, nwAccess:true };
   TODAY = 'Tue';
+  boardView(){ return this.state.boardView || 'pipeline'; }
   constructor(props){ super(props); this._toastT=null; this.ICONS = this.buildIcons(); }
 
   buildIcons(){
@@ -432,6 +471,29 @@ class Component extends DCLogic {
       return { title:cd.title, bg:cd.bg, border:cd.border, ink:cd.ink, dot:cd.dot, countBg:cd.countBg, count:cards.length, cards };
     });
 
+    // board — table view (scales cleanly with many bookings)
+    const bv=this.boardView();
+    const rowGrid='grid-template-columns:minmax(0,1.5fr) minmax(0,.9fr) minmax(0,1.6fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,1.3fr);';
+    const boardGroups=colDefs.map(cd=>{
+      const rows=bookings.filter(b=>b.status===cd.key).map(b=>({
+        ref:b.ref, service:b.service, time:b.time, barangay:b.barangay, landmark:b.landmark, customer:b.customer,
+        svcDot:{width:'7px',height:'7px',borderRadius:'50%',flex:'none',background:b.svc==='aircon'?'#2465a8':'#0e6e63'},
+        payLabel:this.payLabelFor(b), payStyle:this.payChipFor(b),
+        unassigned:b.status==='unassigned', assigned:b.status!=='unassigned',
+        partner:b.partner, partnerInitials:b.pi, avatarStyle:this.avatar(b.pi||'',26),
+        onAssign:()=>this.openAssign(b.ref),
+        rowStyle:'display:grid;'+rowGrid+'gap:10px;align-items:center;padding:11px 14px;border-top:1px solid #f4efe4;font-size:12px;'
+      }));
+      return { key:cd.key, title:cd.title, dot:cd.dot, ink:cd.ink, countBg:cd.countBg, count:rows.length, rows,
+        headStyle:'display:flex;align-items:center;gap:8px;padding:11px 16px;background:'+cd.bg+';border-top:1px solid '+cd.border+';',
+        hidden: rows.length===0 };
+    });
+    const isTable=bv==='table';
+    const segBase='cursor:pointer;display:flex;align-items:center;gap:7px;padding:8px 15px;border-radius:10px;font-weight:700;font-size:13px;transition:all .15s;';
+    const segActive=segBase+'background:#0e6e63;color:#fff;box-shadow:0 4px 10px -4px rgba(14,110,99,.5);';
+    const segIdle=segBase+'background:transparent;color:#8a8578;';
+    const totalBookings=bookings.length;
+
     // roster
     const mark=(ok,pend)=>{ if(ok) return I.tick; if(pend) return I.pendClock; return I.cross; };
     const markStyle=(ok,pend)=>({ display:'inline-flex', alignItems:'center', gap:'5px', fontSize:'12.5px', fontWeight:700, color: ok?'#0a6f5f':(pend?'#b06f10':'#c0503e') });
@@ -518,6 +580,9 @@ class Component extends DCLogic {
       nav, pageTitle:titles[view][0], pageSubtitle:titles[view][1],
       isSummary:view==='summary', isBoard:view==='board', isRoster:view==='roster', isCatalog:view==='catalog', isGcash:view==='gcash',
       goBoard:()=>this.setState({view:'board'}), goGcash:()=>this.setState({view:'gcash'}),
+      boardGroups, isTable, isPipeline: !isTable, totalBookings,
+      pipeStyle: bv==='pipeline'?segActive:segIdle, tableStyle: isTable?segActive:segIdle,
+      setPipeline:()=>this.setState({boardView:'pipeline'}), setTable:()=>this.setState({boardView:'table'}),
       kpis, todayList,
       columns,
       verifiedCount:String(workersData.filter(w=>w.status==='verified').length), pendingVetCount:String(workersData.filter(w=>w.status==='pending').length), actionCount:String(workersData.filter(w=>w.status==='action').length),
