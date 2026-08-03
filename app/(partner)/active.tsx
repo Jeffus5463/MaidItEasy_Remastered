@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from 'expo-image-picker';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../../src/theme';
@@ -11,6 +11,7 @@ import { ErrorState, LoadingState } from '../../src/components/UI';
 import { formatBookingWhen } from '../../src/lib/bookings';
 import { completeJob, enRouteJob, startJob, uploadJobPhoto, useJob } from '../../src/lib/partner';
 import { useRequirePartner } from '../../src/lib/partnerAuth';
+import { useRealtimeInvalidate } from '../../src/lib/realtime';
 import { usePartnerJob } from '../../src/partnerStore';
 
 const STEPS = [
@@ -26,6 +27,13 @@ export default function ActiveJob() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { ready } = useRequirePartner();
   const { data: booking, isLoading, isError, refetch } = useJob(id ?? null);
+  useRealtimeInvalidate('bookings', id ? `id=eq.${id}` : undefined, ['partner-job', id]);
+  // Backstop: catches anything missed during a dropped realtime connection.
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
   const { beforePhoto, afterPhoto, setBeforePhoto, setAfterPhoto } = usePartnerJob();
   const queryClient = useQueryClient();
   const [working, setWorking] = useState(false);

@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAdminSession } from '@/lib/auth';
+import { useRealtimeInvalidate } from '@/lib/realtime';
 import { colors } from '@/theme';
 import { Sidebar } from './Sidebar';
 
@@ -20,6 +21,15 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
     if (loading || bypassGate) return;
     if (!session || !isAdmin) router.replace('/login');
   }, [loading, session, isAdmin, bypassGate, router]);
+
+  // Subscribed once here rather than per-page — every real admin page
+  // (board, summary, gcash) reads the same ['admin-bookings']/
+  // ['admin-payments'] query keys, and this is the single place that
+  // already wraps all of them once auth is confirmed. No filter: an admin
+  // is authorized to see every booking/payment.
+  const isAuthed = isAdmin && !!session;
+  useRealtimeInvalidate('bookings', isAuthed ? null : undefined, ['admin-bookings']);
+  useRealtimeInvalidate('payments', isAuthed ? null : undefined, ['admin-payments']);
 
   // These pages render their own full-page layout — no sidebar, no
   // data-fetching chrome, and no auth requirement to see them.

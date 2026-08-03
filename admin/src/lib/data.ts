@@ -25,7 +25,6 @@ export function useBookings() {
       if (error) throw error;
       return data as BookingRow[];
     },
-    refetchInterval: 8000,
   });
 }
 
@@ -40,7 +39,6 @@ export function usePayments() {
       if (error) throw error;
       return data as PaymentRow[];
     },
-    refetchInterval: 8000,
   });
 }
 

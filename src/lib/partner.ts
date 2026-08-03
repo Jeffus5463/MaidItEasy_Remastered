@@ -31,16 +31,33 @@ export interface JobWithPayment extends BookingRow {
   payments: { method: 'gcash' | 'cash' }[];
 }
 
-export function useJob(id: string | null) {
+// `pollMs` is an opt-in escape hatch for a screen that needs to notice a
+// change Realtime structurally can't deliver: Supabase Realtime authorizes
+// postgres_changes UPDATE events against the NEW row under the caller's own
+// RLS, so a partner losing access to this booking (unassigned/re-held
+// elsewhere) never receives an event for that change — only the reverse
+// (gaining access) is deliverable. job.tsx uses this while active.tsx /
+// completed.tsx don't need it (see their own realtime/backstop coverage).
+//
+// maybeSingle() (not single()) matters here beyond just "no throw on zero
+// rows": once a query has cached successful data, React Query doesn't flip
+// isError/status on a later *background* fetch failure while stale data is
+// still cached (failureCount/failureReason update instead) — so a poll/
+// realtime-triggered refetch that used single() and threw would leave the
+// screen showing the stale booking forever, never actually reaching the
+// `!booking` guard below. maybeSingle() instead resolves successfully with
+// data: null the moment the row is no longer visible under this partner's
+// RLS, which *does* overwrite the cache and correctly trips `!booking`.
+export function useJob(id: string | null, pollMs?: number) {
   return useQuery({
     queryKey: ['partner-job', id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('bookings').select('*, payments(method)').eq('id', id).single();
+      const { data, error } = await supabase.from('bookings').select('*, payments(method)').eq('id', id).maybeSingle();
       if (error) throw error;
-      return data as JobWithPayment;
+      return data as JobWithPayment | null;
     },
     enabled: !!id,
-    refetchInterval: 4000,
+    refetchInterval: pollMs,
   });
 }
 

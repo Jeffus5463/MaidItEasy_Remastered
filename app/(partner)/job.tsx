@@ -9,12 +9,22 @@ import { ErrorState, FieldError, LoadingState } from '../../src/components/UI';
 import { bookingScope, customerLabel, formatBookingWhen } from '../../src/lib/bookings';
 import { acceptJob, declineJob, useJob } from '../../src/lib/partner';
 import { useRequirePartner } from '../../src/lib/partnerAuth';
+import { useRealtimeInvalidate } from '../../src/lib/realtime';
 import { usePartnerJob } from '../../src/partnerStore';
 
 export default function JobDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { partner, ready } = useRequirePartner();
-  const { data: booking, isLoading, isError, refetch } = useJob(id ?? null);
+  // A partner can sit on this Accept/Decline screen while an admin unassigns
+  // it or another partner's decline re-holds it elsewhere. Realtime alone
+  // can't catch that: Supabase authorizes postgres_changes UPDATE events
+  // against the NEW row under the caller's own RLS, so a change that revokes
+  // this partner's visibility (unassigned away) is never delivered to them —
+  // only a change that grants it would be. The 5s poll is the backstop for
+  // that specific direction; realtime still covers everything else (e.g. an
+  // in-place edit that keeps this partner assigned) without waiting on it.
+  const { data: booking, isLoading, isError, refetch } = useJob(id ?? null, 5000);
+  useRealtimeInvalidate('bookings', id ? `id=eq.${id}` : undefined, ['partner-job', id]);
   const { setDecline } = usePartnerJob();
   const [declineOpen, setDeclineOpen] = useState(false);
   const [reason, setReason] = useState('');

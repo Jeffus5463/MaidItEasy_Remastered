@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../src/theme';
@@ -7,6 +8,7 @@ import { SERVICES, TRACK_STEPS } from '../src/data';
 import { ErrorState, LoadingState } from '../src/components/UI';
 import { SupportBlock } from '../src/components/SupportBlock';
 import { useBookingTracking } from '../src/lib/bookings';
+import { useRealtimeInvalidate } from '../src/lib/realtime';
 import { useBooking } from '../src/store';
 
 const STATUS_RANK: Record<string, number> = {
@@ -22,6 +24,13 @@ export default function Tracking() {
   const b = useBooking();
   const bookingId = paramId ?? b.bookingId;
   const { data: booking, isLoading, isError, refetch } = useBookingTracking(bookingId ?? null);
+  useRealtimeInvalidate('bookings', bookingId ? `id=eq.${bookingId}` : undefined, ['bookings', bookingId]);
+  // Backstop: catches anything missed during a dropped realtime connection.
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const svc = booking ? SERVICES[booking.service_id] : b.service ? SERVICES[b.service] : SERVICES.cleaning;
 

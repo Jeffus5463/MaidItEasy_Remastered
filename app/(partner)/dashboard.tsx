@@ -9,17 +9,28 @@ import { ErrorState, LoadingState } from '../../src/components/UI';
 import { BookingRow, formatBookingWhen } from '../../src/lib/bookings';
 import { useMyJobs } from '../../src/lib/partner';
 import { signOutPartner, useRequirePartner } from '../../src/lib/partnerAuth';
+import { useRealtimeInvalidate } from '../../src/lib/realtime';
 
 export default function PartnerDashboard() {
   const { partner, ready } = useRequirePartner();
   const { data: mine, isLoading: loadingMine, isError: errorMine, refetch: refetchMine } = useMyJobs(partner?.id ?? null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Job list has no polling — it's the "navigate away and come back" screen,
-  // not a screen a partner stares at waiting for a status flip (that's
-  // useJob's 4s poll on the active-job screen). Refetch on focus covers the
-  // common case cheaply; pull-to-refresh covers "I'm still on this screen
-  // and want to check now" without whole-list polling.
+  // Live: a new assignment lands the moment the dispatcher confirms it,
+  // without the partner navigating away and back. Note the filter is
+  // one-directional — it matches bookings.partner_id = me on the row
+  // *after* a change, so an assignment TO this partner fires live, but a
+  // reassignment AWAY from them (partner_id no longer matches) doesn't; that
+  // case is still caught by the focus-refetch/pull-to-refresh below.
+  useRealtimeInvalidate(
+    'bookings',
+    partner ? `partner_id=eq.${partner.id}` : undefined,
+    ['partner-jobs', 'mine', partner?.id]
+  );
+
+  // Focus-refetch covers the common case cheaply (including a job moved
+  // away from this partner, which the realtime filter above can't catch);
+  // pull-to-refresh covers "I'm still on this screen and want to check now."
   useFocusEffect(
     useCallback(() => {
       refetchMine();

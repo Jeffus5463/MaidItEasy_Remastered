@@ -208,6 +208,5 @@ export function useBookingTracking(bookingId: string | null) {
       return data as unknown as BookingWithPartner;
     },
     enabled: !!bookingId,
-    refetchInterval: 4000,
   });
 }
