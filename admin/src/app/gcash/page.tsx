@@ -5,7 +5,7 @@ import { useBookings, usePayments, useVerifyPayment } from '@/lib/data';
 import { customerLabel, formatWhen, peso, serviceLabel } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { TopBar, chip } from '@/components/shared';
-import { GcashIcon, TickIcon } from '@/components/icons';
+import { CloseIcon, GcashIcon, SearchIcon, TickIcon } from '@/components/icons';
 import { RejectPaymentModal } from '@/components/RejectPaymentModal';
 import { PaymentRow } from '@/lib/types';
 
@@ -14,9 +14,27 @@ export default function GcashPage() {
   const { data: bookings } = useBookings();
   const verify = useVerifyPayment();
   const [rejecting, setRejecting] = useState<PaymentRow | null>(null);
+  const [query, setQuery] = useState('');
 
   const bookingById = new Map((bookings ?? []).map((b) => [b.id, b]));
   const gcashPayments = (payments ?? []).filter((p) => p.method === 'gcash');
+
+  // Same free-text search as the booking board: match across the fields a
+  // dispatcher would actually search by — customer name/contact, barangay +
+  // landmark, the booking ref code, and the GCash reference number itself.
+  // Multi-word queries require every word to appear somewhere, not as one
+  // exact phrase.
+  const searchTerms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matchesSearch = (p: PaymentRow) => {
+    if (searchTerms.length === 0) return true;
+    const booking = bookingById.get(p.booking_id);
+    const ref = p.booking_id.slice(0, 4).toUpperCase();
+    const haystack = [booking ? customerLabel(booking) : '', booking?.contact ?? '', booking?.barangay ?? '', booking?.landmark ?? '', ref, p.gcash_ref ?? '']
+      .join(' ')
+      .toLowerCase();
+    return searchTerms.every((t) => haystack.includes(t));
+  };
+  const filtered = gcashPayments.filter(matchesSearch);
 
   return (
     <div style={{ animation: 'fadeUp .3s ease both', maxWidth: 820 }}>
@@ -31,12 +49,48 @@ export default function GcashPage() {
         </div>
       </div>
 
+      {gcashPayments.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ fontSize: 13, color: colors.muted, fontWeight: 600 }}>
+            {searchTerms.length > 0
+              ? `${filtered.length} of ${gcashPayments.length} payments match “${query.trim()}”`
+              : `${gcashPayments.length} GCash payment${gcashPayments.length === 1 ? '' : 's'}`}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: `1px solid ${colors.borderSoft}`, borderRadius: 11, padding: '9px 13px', minWidth: 220 }}>
+            <SearchIcon size={15} color={colors.muted} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search payments…"
+              style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: colors.ink, flex: 1, minWidth: 0, fontFamily: fonts.body }}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="Clear search"
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 0, display: 'flex', flex: 'none' }}
+              >
+                <CloseIcon size={13} color={colors.muted} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div style={{ color: colors.muted, fontSize: 14 }}>Loading…</div>
       ) : gcashPayments.length === 0 ? (
         <div style={{ color: colors.muted, fontSize: 13 }}>No GCash payments yet.</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ background: '#fff', border: `1px solid ${colors.cardBorder}`, borderRadius: 16, padding: '32px 20px', textAlign: 'center', color: colors.muted, fontSize: 13.5 }}>
+          No payments match “{query.trim()}”.{' '}
+          <button type="button" onClick={() => setQuery('')} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: colors.primary, fontWeight: 700, padding: 0, fontSize: 13.5 }}>
+            Clear search
+          </button>
+        </div>
       ) : (
-        gcashPayments.map((p) => {
+        filtered.map((p) => {
           const booking = bookingById.get(p.booking_id);
           const pending = p.status === 'awaiting_payment';
           const verified = p.status === 'verified';
