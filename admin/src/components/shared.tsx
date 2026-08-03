@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { fonts } from '@/theme';
 
 export function TopBar({ title, subtitle }: { title: string; subtitle: string }) {
@@ -94,7 +96,10 @@ export function Modal({
   width?: number;
   children: React.ReactNode;
 }) {
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const overlay = (
     <div
       onClick={onClose}
       style={{
@@ -120,6 +125,7 @@ export function Modal({
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
+          minHeight: 0,
           animation: 'sheetIn .25s cubic-bezier(.2,.9,.3,1) both',
           boxShadow: '0 30px 70px -20px rgba(11,43,40,.5)',
         }}
@@ -128,6 +134,14 @@ export function Modal({
       </div>
     </div>
   );
+
+  // Portal to document.body: every admin page wraps its content in a
+  // fadeUp-animated div (see globals.css), and a transform animation on an
+  // ancestor makes it the containing block for `position: fixed` — without
+  // this, the modal anchors to that tall page wrapper instead of the
+  // viewport. Guarded by `mounted` since document isn't available during SSR.
+  if (!mounted) return null;
+  return createPortal(overlay, document.body);
 }
 
 export function chip(bg: string, color: string): React.CSSProperties {

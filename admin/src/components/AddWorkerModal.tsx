@@ -131,7 +131,7 @@ export function AddWorkerModal({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      <div className="scr" style={{ padding: '18px 22px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="scr" style={{ padding: '18px 22px', overflowY: 'auto', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>
           <label style={{ fontSize: 11, fontWeight: 800, color: colors.faint, letterSpacing: '.04em', textTransform: 'uppercase' }}>Full name</label>
           <input

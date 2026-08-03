@@ -112,7 +112,7 @@ export function AssignModal({ booking, onClose }: { booking: BookingRow; onClose
         </div>
       </div>
 
-      <div className="scr" style={{ padding: '14px 22px', overflowY: 'auto', flex: 1 }}>
+      <div className="scr" style={{ padding: '14px 22px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
         <div style={{ fontSize: '11.5px', fontWeight: 800, color: colors.faint, letterSpacing: '.05em', textTransform: 'uppercase', marginBottom: 9 }}>
           {okCount} of {candidates.length} verified partner{candidates.length === 1 ? '' : 's'} can take {booking.service_id === 'aircon' ? 'aircon' : 'cleaning'} at {formatWhen(booking.date, booking.start_hour, booking.duration_hours)}
         </div>
