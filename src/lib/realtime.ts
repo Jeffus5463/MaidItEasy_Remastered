@@ -21,8 +21,21 @@ export function useRealtimeInvalidate(table: string, filter: string | undefined,
     // Channel name is derived from table + filter + the query key so two
     // independent subscriptions can never collide on the same channel name
     // — removeChannel() on one can't accidentally tear down another.
+    const name = `${table}:${filter}:${queryKeyJson}`;
+
+    // Defensive: removeChannel() below sends an async "leave" over the
+    // websocket rather than synchronously deregistering the channel. If this
+    // effect re-runs (React StrictMode's double-invoke, Fast Refresh, or a
+    // fast unmount/remount on navigation) before that leave completes,
+    // supabase-js's channel() dedupes by topic and hands back the SAME
+    // already-subscribed channel instead of a fresh one — and calling .on()
+    // on an already-subscribed channel throws "cannot add postgres_changes
+    // callbacks ... after subscribe()". Clear out any such leftover first.
+    const stale = supabase.getChannels().find((c) => c.topic === `realtime:${name}`);
+    if (stale) supabase.removeChannel(stale);
+
     const channel = supabase
-      .channel(`${table}:${filter}:${queryKeyJson}`)
+      .channel(name)
       .on('postgres_changes', { event: '*', schema: 'public', table, filter }, () => {
         queryClient.invalidateQueries({ queryKey: JSON.parse(queryKeyJson) });
       })
