@@ -4,16 +4,18 @@ import { useCallback, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../../src/theme';
-import { SERVICES, toLocalIso } from '../../src/data';
+import { toLocalIso } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
 import { BookingRow, formatBookingWhen } from '../../src/lib/bookings';
 import { useMyJobs } from '../../src/lib/partner';
 import { signOutPartner, useRequirePartner } from '../../src/lib/partnerAuth';
 import { useRealtimeInvalidate } from '../../src/lib/realtime';
+import { findService, useServices } from '../../src/lib/services';
 
 export default function PartnerDashboard() {
   const { partner, ready } = useRequirePartner();
   const { data: mine, isLoading: loadingMine, isError: errorMine, refetch: refetchMine } = useMyJobs(partner?.id ?? null);
+  const { data: serviceRows, isLoading: loadingServices, isError: errorServices, refetch: refetchServices } = useServices();
   const [refreshing, setRefreshing] = useState(false);
 
   // Live: a new assignment lands the moment the dispatcher confirms it,
@@ -46,7 +48,7 @@ export default function PartnerDashboard() {
     }
   };
 
-  const loading = !ready || loadingMine;
+  const loading = !ready || loadingMine || loadingServices;
 
   const logOut = async () => {
     await signOutPartner();
@@ -61,10 +63,10 @@ export default function PartnerDashboard() {
     );
   }
 
-  if (errorMine || !partner) {
+  if (errorMine || errorServices || !partner) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-        <ErrorState onRetry={() => refetchMine()} />
+        <ErrorState onRetry={() => (errorMine ? refetchMine() : refetchServices())} />
       </SafeAreaView>
     );
   }
@@ -194,7 +196,7 @@ export default function PartnerDashboard() {
                         )}
                       </View>
                       <View>
-                        <Text style={styles.jobService}>{SERVICES[job.service_id].name}</Text>
+                        <Text style={styles.jobService}>{findService(serviceRows, job.service_id)?.name ?? job.service_id}</Text>
                         <Text style={styles.jobWhen}>{formatBookingWhen(job.date, job.start_hour, job.duration_hours)}</Text>
                       </View>
                     </View>
@@ -217,7 +219,7 @@ export default function PartnerDashboard() {
             <>
               <Text style={styles.scheduleTitle}>Upcoming</Text>
               {upcomingJobs.map((job) => {
-                const svc = SERVICES[job.service_id];
+                const svc = findService(serviceRows, job.service_id);
                 const inProgress = job.status === 'en_route' || job.status === 'in_progress';
                 return (
                   <Pressable
@@ -233,7 +235,7 @@ export default function PartnerDashboard() {
                       )}
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.scheduleService}>{svc.name}</Text>
+                      <Text style={styles.scheduleService}>{svc?.name ?? job.service_id}</Text>
                       <Text style={styles.scheduleWhen}>
                         {formatBookingWhen(job.date, job.start_hour, job.duration_hours)} · {job.barangay}
                       </Text>
@@ -253,7 +255,7 @@ export default function PartnerDashboard() {
             <>
               <Text style={styles.scheduleTitle}>Completed</Text>
               {completedJobs.map((job) => {
-                const svc = SERVICES[job.service_id];
+                const svc = findService(serviceRows, job.service_id);
                 return (
                   <Pressable
                     key={job.id}
@@ -268,7 +270,7 @@ export default function PartnerDashboard() {
                       )}
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.scheduleService}>{svc.name}</Text>
+                      <Text style={styles.scheduleService}>{svc?.name ?? job.service_id}</Text>
                       <Text style={styles.scheduleWhen}>
                         {formatBookingWhen(job.date, job.start_hour, job.duration_hours)} · {job.barangay}
                       </Text>

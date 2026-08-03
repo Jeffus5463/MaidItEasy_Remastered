@@ -3,14 +3,32 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../../src/theme';
-import { SERVICES, ServiceId, peso } from '../../src/data';
-import { PrimaryButton } from '../../src/components/UI';
+import { ServiceId, peso } from '../../src/data';
+import { ErrorState, LoadingState, PrimaryButton } from '../../src/components/UI';
+import { findService, useServices } from '../../src/lib/services';
 import { useBooking } from '../../src/store';
 
 export default function ServiceDetail() {
   const { id } = useLocalSearchParams<{ id: ServiceId }>();
   const { set } = useBooking();
-  const svc = SERVICES[id as ServiceId] ?? SERVICES.cleaning;
+  const { data: serviceRows, isLoading, isError, refetch } = useServices();
+  const svc = findService(serviceRows, id as ServiceId);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <LoadingState message="Loading service…" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError || !svc) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ErrorState onRetry={() => refetch()} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>

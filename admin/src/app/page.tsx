@@ -60,7 +60,7 @@ export default function SummaryPage() {
         <div style={{ color: colors.muted, fontSize: 14 }}>Loading…</div>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+          <div className="grid-kpi" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
             {kpis.map((k) => (
               <div key={k.label} style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: '18px 18px 16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -75,7 +75,7 @@ export default function SummaryPage() {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 20, marginTop: 20 }}>
+          <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 20, marginTop: 20 }}>
             <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 17 }}>Recent bookings</div>

@@ -3,11 +3,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
-import { COMMISSION_RATE, SERVICES, peso } from '../../src/data';
+import { COMMISSION_RATE, peso } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
 import { formatBookingWhen } from '../../src/lib/bookings';
 import { useJob, useJobPhotos } from '../../src/lib/partner';
 import { useRequirePartner } from '../../src/lib/partnerAuth';
+import { findService, useServices } from '../../src/lib/services';
 import { usePartnerJob } from '../../src/partnerStore';
 
 export default function JobCompleted() {
@@ -15,6 +16,7 @@ export default function JobCompleted() {
   const { partner, ready } = useRequirePartner();
   const { data: booking, isLoading, isError, refetch } = useJob(id ?? null);
   const { data: photos } = useJobPhotos(id ?? null);
+  const { data: serviceRows, isLoading: loadingServices, isError: errorServices, refetch: refetchServices } = useServices();
   const { reset } = usePartnerJob();
   const firstName = partner?.name.split(' ')[0] ?? '';
   const insets = useSafeAreaInsets();
@@ -24,7 +26,7 @@ export default function JobCompleted() {
     router.replace('/dashboard');
   };
 
-  if (!ready || isLoading) {
+  if (!ready || isLoading || loadingServices) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <LoadingState message="Loading…" />
@@ -32,15 +34,15 @@ export default function JobCompleted() {
     );
   }
 
-  if (isError || !booking) {
+  const svc = booking ? findService(serviceRows, booking.service_id) : undefined;
+
+  if (isError || errorServices || !booking || !svc) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-        <ErrorState onRetry={() => refetch()} />
+        <ErrorState onRetry={() => (isError ? refetch() : refetchServices())} />
       </SafeAreaView>
     );
   }
-
-  const svc = SERVICES[booking.service_id];
   const earn = Math.round(booking.total * COMMISSION_RATE);
 
   return (

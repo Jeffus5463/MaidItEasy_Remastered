@@ -56,8 +56,8 @@ export default function RosterPage() {
     <div style={{ animation: 'fadeUp .3s ease both' }}>
       <TopBar title="Worker roster" subtitle="Vetting & verification status of your partners" />
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 14, padding: '13px 18px', flex: 1 }}>
+      <div className="roster-stats" style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+        <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 14, padding: '13px 18px', flex: 1, minWidth: 140 }}>
           <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 24, color: colors.primary }}>{verifiedCount}</div>
           <div style={{ fontSize: 12, color: colors.muted, fontWeight: 600 }}>Verified partners</div>
         </div>

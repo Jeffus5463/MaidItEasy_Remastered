@@ -5,9 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '../src/components/BottomNav';
 import { SupportBlock } from '../src/components/SupportBlock';
 import { EmptyState, ErrorState, LoadingState } from '../src/components/UI';
-import { BookingStatus, SERVICES, peso } from '../src/data';
+import { BookingStatus, peso } from '../src/data';
 import { colors, fonts, radius, shadow } from '../src/theme';
 import { formatBookingWhen, statusLabel, useMyBookings } from '../src/lib/bookings';
+import { findService, useServices } from '../src/lib/services';
 
 const STATUS_TINTS: Record<BookingStatus, { bg: string; fg: string }> = {
   Pending: { bg: colors.goldTint, fg: colors.goldText },
@@ -20,15 +21,16 @@ const STATUS_TINTS: Record<BookingStatus, { bg: string; fg: string }> = {
 
 export default function Bookings() {
   const { data: bookings, isLoading, isError, refetch } = useMyBookings();
+  const { data: serviceRows, isLoading: loadingServices, isError: errorServices, refetch: refetchServices } = useServices();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <Text style={styles.h1}>My bookings</Text>
 
-      {isLoading ? (
+      {isLoading || loadingServices ? (
         <LoadingState message="Loading your bookings…" />
-      ) : isError ? (
-        <ErrorState onRetry={() => refetch()} />
+      ) : isError || errorServices ? (
+        <ErrorState onRetry={() => (isError ? refetch() : refetchServices())} />
       ) : !bookings || bookings.length === 0 ? (
         <View style={styles.scroll}>
           <EmptyState
@@ -41,7 +43,8 @@ export default function Bookings() {
       ) : (
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           {bookings.map((booking) => {
-            const svc = SERVICES[booking.service_id];
+            const svc = findService(serviceRows, booking.service_id);
+            if (!svc) return null;
             // 'assigned' is a push to the partner, not a confirmation — the
             // partner can still decline it back to 'pending'. Don't show
             // "Assigned" until accepted_at is actually set, same reasoning

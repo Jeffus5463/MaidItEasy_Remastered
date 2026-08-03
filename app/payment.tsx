@@ -4,17 +4,19 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../src/theme';
-import { GCASH_NUMBER, SERVICES, formatHourRange, peso } from '../src/data';
-import { FieldError, KeyboardScreen, PrimaryButton } from '../src/components/UI';
+import { GCASH_NUMBER, formatHourRange, peso } from '../src/data';
+import { ErrorState, FieldError, KeyboardScreen, LoadingState, PrimaryButton } from '../src/components/UI';
 import { formatGcashRef, isValidGcashRef } from '../src/format';
 import { createBooking } from '../src/lib/bookings';
+import { findService, useServices } from '../src/lib/services';
 import { useBooking } from '../src/store';
 
 type Method = 'gcash' | 'cash';
 
 export default function Payment() {
   const b = useBooking();
-  const svc = b.service ? SERVICES[b.service] : SERVICES.cleaning;
+  const { data: serviceRows, isLoading, isError, refetch } = useServices();
+  const svc = findService(serviceRows, b.service ?? 'cleaning');
   const [method, setMethod] = useState<Method | ''>(b.payment);
   const [refDigits, setRefDigits] = useState(b.gcashRef.replace(/\D/g, ''));
   const [refTouched, setRefTouched] = useState(false);
@@ -56,6 +58,22 @@ export default function Payment() {
       setSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <LoadingState message="Loading…" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError || !svc) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ErrorState onRetry={() => refetch()} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>

@@ -7,24 +7,33 @@ import { signOutAdmin, useAdminSession } from '@/lib/auth';
 import { colors, fonts } from '@/theme';
 import { BoardIcon, CatalogIcon, GcashIcon, HomeIcon, PayoutIcon, RosterIcon } from './icons';
 
-const NAV = [
-  { href: '/', label: 'Daily summary', Icon: HomeIcon, badge: 'none' as const },
-  { href: '/board', label: 'Booking board', Icon: BoardIcon, badge: 'unassigned' as const },
-  { href: '/roster', label: 'Worker roster', Icon: RosterIcon, badge: 'none' as const },
-  { href: '/catalog', label: 'Service catalog', Icon: CatalogIcon, badge: 'none' as const },
-  { href: '/gcash', label: 'GCash verification', Icon: GcashIcon, badge: 'gcash' as const },
-  { href: '/payouts', label: 'Payouts', Icon: PayoutIcon, badge: 'none' as const },
+// `short` is the mobile bottom-nav label (BottomNav.tsx) — the sidebar
+// itself still shows the full `label`.
+export const NAV = [
+  { href: '/', label: 'Daily summary', short: 'Summary', Icon: HomeIcon, badge: 'none' as const },
+  { href: '/board', label: 'Booking board', short: 'Board', Icon: BoardIcon, badge: 'unassigned' as const },
+  { href: '/roster', label: 'Worker roster', short: 'Roster', Icon: RosterIcon, badge: 'none' as const },
+  { href: '/catalog', label: 'Service catalog', short: 'Catalog', Icon: CatalogIcon, badge: 'none' as const },
+  { href: '/gcash', label: 'GCash verification', short: 'GCash', Icon: GcashIcon, badge: 'gcash' as const },
+  { href: '/payouts', label: 'Payouts', short: 'Payouts', Icon: PayoutIcon, badge: 'none' as const },
 ];
+
+// Shared by Sidebar and BottomNav — same badge semantics, same underlying
+// (already-cached) queries, so computing it in each is free.
+export function useNavBadgeCounts() {
+  const { data: bookings } = useBookings();
+  const { data: payments } = usePayments();
+  return {
+    unassigned: bookings?.filter((b) => b.status === 'pending' && !b.partner_id).length ?? 0,
+    gcash: payments?.filter((p) => p.status === 'awaiting_payment').length ?? 0,
+  };
+}
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: bookings } = useBookings();
-  const { data: payments } = usePayments();
+  const { unassigned: unassignedCount, gcash: pendingGcashCount } = useNavBadgeCounts();
   const { session } = useAdminSession();
-
-  const unassignedCount = bookings?.filter((b) => b.status === 'pending' && !b.partner_id).length ?? 0;
-  const pendingGcashCount = payments?.filter((p) => p.status === 'awaiting_payment').length ?? 0;
 
   const logOut = async () => {
     await signOutAdmin();
@@ -33,6 +42,7 @@ export function Sidebar() {
 
   return (
     <div
+      className="sidebar"
       style={{
         width: 250,
         flex: 'none',

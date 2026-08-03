@@ -6,40 +6,27 @@ export const peso = (n: number) => "₱" + n.toLocaleString("en-US");
 export type ServiceId = "cleaning" | "aircon";
 export type PricingModel = "per_hour" | "per_unit";
 
-export interface Service {
-  id: ServiceId;
-  name: string;
+// Presentation-only copy that has no column in the `services` table
+// (Phase 7) — icon accent/tint and the marketing description + inclusions
+// checklist. Everything else about a service (name, price, duration,
+// suffix, priceLabel, pricingModel, hourlyRate, estimatedMinutesPerUnit,
+// active) lives in the real `services` table now and comes from
+// useServices()/mergeService() in src/lib/services.ts. This is NOT the
+// source of truth for any of that — an admin catalog edit
+// (admin/src/app/catalog/page.tsx) would silently stop reaching customers
+// again if a price/duration/active field ever got added back here.
+export interface ServicePresentation {
   desc: string;
-  price: number;
-  suffix: string;
-  duration: string;
   accent: string;
   tint: string;
   includes: string[];
-  priceLabel: string; // "Starting at" | "Fixed price"
-  pricingModel: PricingModel;
-  // per_hour only — placeholder, not a final price (Phase 4, flagged for
-  // the operator to confirm before launch). Mirrors services.hourly_rate.
-  hourlyRate: number | null;
-  // per_unit only — mirrors services.estimated_minutes_per_unit, used to
-  // derive duration_hours = ceil(units * estimatedMinutesPerUnit / 60).
-  estimatedMinutesPerUnit: number | null;
 }
 
-export const SERVICES: Record<ServiceId, Service> = {
+export const SERVICE_PRESENTATION: Record<ServiceId, ServicePresentation> = {
   cleaning: {
-    id: "cleaning",
-    name: "Home Cleaning",
     desc: "A thorough general cleaning of your home by a vetted partner who brings their own supplies.",
-    price: 399,
-    suffix: "/hr",
-    duration: "2–3 hrs",
     accent: colors.primary,
     tint: colors.primaryTintBg,
-    priceLabel: "Per hour",
-    pricingModel: "per_hour",
-    hourlyRate: 399,
-    estimatedMinutesPerUnit: null,
     includes: [
       "Sweeping & mopping of all rooms",
       "Dusting of surfaces, fixtures & furniture",
@@ -49,18 +36,9 @@ export const SERVICES: Record<ServiceId, Service> = {
     ],
   },
   aircon: {
-    id: "aircon",
-    name: "Aircon Cleaning & Servicing",
     desc: "Deep cleaning and servicing of your aircon units for cooler, cleaner, more efficient air.",
-    price: 600,
-    suffix: "/unit",
-    duration: "~45 min/unit",
     accent: colors.blue,
     tint: colors.blueTint,
-    priceLabel: "Fixed price",
-    pricingModel: "per_unit",
-    hourlyRate: null,
-    estimatedMinutesPerUnit: 45,
     includes: [
       "Filter & front cover deep cleaning",
       "Evaporator coil & fan blower cleaning",
@@ -70,8 +48,6 @@ export const SERVICES: Record<ServiceId, Service> = {
     ],
   },
 };
-
-export const SERVICE_LIST = Object.values(SERVICES);
 
 // Business hours + booking-length rules (Phase 4) — must match the SQL
 // constant functions business_open_hour()/business_close_hour()/

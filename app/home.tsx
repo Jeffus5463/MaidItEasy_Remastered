@@ -4,16 +4,19 @@ import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '../src/components/BottomNav';
-import { LoadingState } from '../src/components/UI';
+import { ErrorState, LoadingState } from '../src/components/UI';
 import { colors, fonts, radius, shadow } from '../src/theme';
-import { SERVICE_LIST, peso } from '../src/data';
+import { peso } from '../src/data';
 import { signOutCustomer, useProfileName, useSession } from '../src/lib/auth';
+import { mergeService, useServices } from '../src/lib/services';
 import { useBooking } from '../src/store';
 
 export default function Home() {
   const b = useBooking();
   const { set } = b;
   const { session, loading } = useSession();
+  const { data: serviceRows, isLoading: loadingServices, isError: errorServices, refetch: refetchServices } = useServices();
+  const services = (serviceRows ?? []).filter((s) => s.active).map(mergeService);
   const { data: fullName } = useProfileName(session?.user.id);
   const firstName = fullName?.trim().split(/\s+/)[0];
   const initials = fullName
@@ -41,10 +44,18 @@ export default function Home() {
     router.push(`/service/${id}`);
   };
 
-  if (loading || !session) {
+  if (loading || !session || loadingServices) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <LoadingState message="Signing you in…" />
+      </SafeAreaView>
+    );
+  }
+
+  if (errorServices) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        <ErrorState onRetry={() => refetchServices()} />
       </SafeAreaView>
     );
   }
@@ -85,7 +96,7 @@ export default function Home() {
           </View>
         </View>
 
-        {SERVICE_LIST.map((s) => (
+        {services.map((s) => (
           <Pressable key={s.id} style={styles.card} onPress={() => openService(s.id)}>
             <View style={[styles.thumb, { backgroundColor: s.tint }]}>
               {s.id === 'aircon' ? (

@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { useAdminSession } from '@/lib/auth';
 import { useRealtimeInvalidate } from '@/lib/realtime';
 import { colors } from '@/theme';
+import { BottomNav } from './BottomNav';
 import { Sidebar } from './Sidebar';
 
 export function AdminGate({ children }: { children: React.ReactNode }) {
@@ -46,9 +47,10 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', width: '100%', background: '#f2ede3' }}>
       <Sidebar />
-      <div className="scr" style={{ flex: 1, minWidth: 0, height: '100vh', overflowY: 'auto' }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto', padding: '26px 34px 60px' }}>{children}</div>
+      <div className="scr main-scroll" style={{ flex: 1, minWidth: 0, height: '100vh', overflowY: 'auto' }}>
+        <div className="main-pad" style={{ maxWidth: 1180, margin: '0 auto', padding: '26px 34px 60px' }}>{children}</div>
       </div>
+      <BottomNav />
     </div>
   );
 }

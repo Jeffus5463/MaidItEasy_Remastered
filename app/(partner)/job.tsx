@@ -4,12 +4,13 @@ import { useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
-import { COMMISSION_RATE, DECLINE_REASONS, SERVICES, peso } from '../../src/data';
+import { COMMISSION_RATE, DECLINE_REASONS, peso } from '../../src/data';
 import { ErrorState, FieldError, LoadingState } from '../../src/components/UI';
 import { bookingScope, customerLabel, formatBookingWhen } from '../../src/lib/bookings';
 import { acceptJob, declineJob, useJob } from '../../src/lib/partner';
 import { useRequirePartner } from '../../src/lib/partnerAuth';
 import { useRealtimeInvalidate } from '../../src/lib/realtime';
+import { findService, useServices } from '../../src/lib/services';
 import { usePartnerJob } from '../../src/partnerStore';
 
 export default function JobDetail() {
@@ -24,6 +25,7 @@ export default function JobDetail() {
   // that specific direction; realtime still covers everything else (e.g. an
   // in-place edit that keeps this partner assigned) without waiting on it.
   const { data: booking, isLoading, isError, refetch } = useJob(id ?? null, 5000);
+  const { data: serviceRows, isLoading: loadingServices, isError: errorServices, refetch: refetchServices } = useServices();
   useRealtimeInvalidate('bookings', id ? `id=eq.${id}` : undefined, ['partner-job', id]);
   const { setDecline } = usePartnerJob();
   const [declineOpen, setDeclineOpen] = useState(false);
@@ -35,7 +37,7 @@ export default function JobDetail() {
   const [acceptError, setAcceptError] = useState('');
   const insets = useSafeAreaInsets();
 
-  if (!ready || isLoading) {
+  if (!ready || isLoading || loadingServices) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <LoadingState message="Loading job details…" />
@@ -43,15 +45,15 @@ export default function JobDetail() {
     );
   }
 
-  if (isError || !booking || !partner) {
+  const svc = booking ? findService(serviceRows, booking.service_id) : undefined;
+
+  if (isError || errorServices || !booking || !partner || !svc) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-        <ErrorState onRetry={() => refetch()} />
+        <ErrorState onRetry={() => (isError ? refetch() : refetchServices())} />
       </SafeAreaView>
     );
   }
-
-  const svc = SERVICES[booking.service_id];
   const earn = Math.round(booking.total * COMMISSION_RATE);
   const digits = booking.contact.replace(/\D/g, '');
   const paymentMethod = booking.payments?.[0]?.method ?? null;

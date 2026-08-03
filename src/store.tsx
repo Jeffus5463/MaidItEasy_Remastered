@@ -1,6 +1,7 @@
 // Global booking state shared across the checkout flow.
 import React, { createContext, useContext, useMemo, useState } from 'react';
-import { DUMAGUETE_CENTER, MIN_BOOKING_HOURS, SERVICES, ServiceId } from './data';
+import { DUMAGUETE_CENTER, MIN_BOOKING_HOURS, ServiceId } from './data';
+import { findService, useServices } from './lib/services';
 
 export interface BookingState {
   phone: string;
@@ -48,18 +49,24 @@ const Ctx = createContext<BookingContext | null>(null);
 
 export function BookingProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<BookingState>(initial);
+  // Live pricing (Phase 7) — this `total` is what payment.tsx sends to
+  // createBooking(), so it must track the real services table, not a
+  // hardcoded price. It's still only ever a preview: the
+  // bookings_capacity_guard trigger recomputes and overwrites the
+  // authoritative total server-side on insert regardless of what's sent.
+  const { data: services } = useServices();
 
   const value = useMemo<BookingContext>(() => {
     const set = (patch: Partial<BookingState>) => setState((s) => ({ ...s, ...patch }));
     const reset = () => setState(initial);
-    const svc = state.service ? SERVICES[state.service] : null;
+    const svc = state.service ? findService(services, state.service) : null;
     const total = !svc
       ? 0
       : svc.pricingModel === 'per_hour'
         ? state.durationHours * (svc.hourlyRate ?? 0)
         : svc.price * state.units;
     return { ...state, set, reset, total };
-  }, [state]);
+  }, [state, services]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

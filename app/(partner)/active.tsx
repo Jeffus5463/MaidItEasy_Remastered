@@ -6,12 +6,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../../src/theme';
-import { SERVICES } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
 import { formatBookingWhen } from '../../src/lib/bookings';
 import { completeJob, enRouteJob, startJob, uploadJobPhoto, useJob } from '../../src/lib/partner';
 import { useRequirePartner } from '../../src/lib/partnerAuth';
 import { useRealtimeInvalidate } from '../../src/lib/realtime';
+import { findService, useServices } from '../../src/lib/services';
 import { usePartnerJob } from '../../src/partnerStore';
 
 const STEPS = [
@@ -27,6 +27,7 @@ export default function ActiveJob() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { ready } = useRequirePartner();
   const { data: booking, isLoading, isError, refetch } = useJob(id ?? null);
+  const { data: serviceRows, isLoading: loadingServices, isError: errorServices, refetch: refetchServices } = useServices();
   useRealtimeInvalidate('bookings', id ? `id=eq.${id}` : undefined, ['partner-job', id]);
   // Backstop: catches anything missed during a dropped realtime connection.
   useFocusEffect(
@@ -64,7 +65,7 @@ export default function ActiveJob() {
     }
   };
 
-  if (!ready || isLoading) {
+  if (!ready || isLoading || loadingServices) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
         <LoadingState message="Loading job…" />
@@ -72,10 +73,12 @@ export default function ActiveJob() {
     );
   }
 
-  if (isError || !booking) {
+  const svc = booking ? findService(serviceRows, booking.service_id) : undefined;
+
+  if (isError || errorServices || !booking || !svc) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-        <ErrorState onRetry={() => refetch()} />
+        <ErrorState onRetry={() => (isError ? refetch() : refetchServices())} />
       </SafeAreaView>
     );
   }
@@ -92,8 +95,6 @@ export default function ActiveJob() {
       </SafeAreaView>
     );
   }
-
-  const svc = SERVICES[booking.service_id];
   const status = booking.status;
   const curRank = RANK[status] ?? -1;
 

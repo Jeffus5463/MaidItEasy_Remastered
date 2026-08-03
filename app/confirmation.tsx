@@ -3,15 +3,33 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../src/theme';
-import { SERVICES, formatHourRange, peso } from '../src/data';
-import { PrimaryButton } from '../src/components/UI';
+import { formatHourRange, peso } from '../src/data';
+import { ErrorState, LoadingState, PrimaryButton } from '../src/components/UI';
+import { findService, useServices } from '../src/lib/services';
 import { useBooking } from '../src/store';
 
 export default function Confirmation() {
   const b = useBooking();
-  const svc = b.service ? SERVICES[b.service] : SERVICES.cleaning;
+  const { data: serviceRows, isLoading, isError, refetch } = useServices();
+  const svc = findService(serviceRows, b.service ?? 'cleaning');
   const timeLabel = b.startHour !== null ? formatHourRange(b.startHour, b.durationHours) : '';
   const when = [b.date, timeLabel].filter(Boolean).join(' · ');
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <LoadingState message="Loading…" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError || !svc) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ErrorState onRetry={() => refetch()} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>

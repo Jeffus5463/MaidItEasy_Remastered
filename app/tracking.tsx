@@ -4,11 +4,12 @@ import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../src/theme';
-import { SERVICES, TRACK_STEPS } from '../src/data';
+import { TRACK_STEPS } from '../src/data';
 import { ErrorState, LoadingState } from '../src/components/UI';
 import { SupportBlock } from '../src/components/SupportBlock';
 import { useBookingTracking } from '../src/lib/bookings';
 import { useRealtimeInvalidate } from '../src/lib/realtime';
+import { findService, useServices } from '../src/lib/services';
 import { useBooking } from '../src/store';
 
 const STATUS_RANK: Record<string, number> = {
@@ -24,6 +25,7 @@ export default function Tracking() {
   const b = useBooking();
   const bookingId = paramId ?? b.bookingId;
   const { data: booking, isLoading, isError, refetch } = useBookingTracking(bookingId ?? null);
+  const { data: serviceRows, isLoading: loadingServices, isError: errorServices, refetch: refetchServices } = useServices();
   useRealtimeInvalidate('bookings', bookingId ? `id=eq.${bookingId}` : undefined, ['bookings', bookingId]);
   // Backstop: catches anything missed during a dropped realtime connection.
   useFocusEffect(
@@ -32,7 +34,7 @@ export default function Tracking() {
     }, [refetch])
   );
 
-  const svc = booking ? SERVICES[booking.service_id] : b.service ? SERVICES[b.service] : SERVICES.cleaning;
+  const svc = findService(serviceRows, booking ? booking.service_id : (b.service ?? 'cleaning'));
 
   if (!bookingId) {
     return (
@@ -42,7 +44,7 @@ export default function Tracking() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading || loadingServices) {
     return (
       <SafeAreaView style={styles.safe}>
         <LoadingState message="Loading your booking…" />
@@ -53,10 +55,10 @@ export default function Tracking() {
   // isError must be checked before `!booking` — react-query leaves `data`
   // undefined on a query error, so checking `!booking` first would mask a
   // real error behind an infinite loading state instead of showing retry.
-  if (isError || !booking) {
+  if (isError || errorServices || !booking || !svc) {
     return (
       <SafeAreaView style={styles.safe}>
-        <ErrorState onRetry={() => refetch()} />
+        <ErrorState onRetry={() => (isError ? refetch() : refetchServices())} />
       </SafeAreaView>
     );
   }

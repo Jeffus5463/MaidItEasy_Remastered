@@ -160,7 +160,11 @@ export default function BoardPage() {
               )}
             </div>
           ) : view === 'table' ? (
-            <div style={{ background: '#fff', border: `1px solid ${colors.cardBorder}`, borderRadius: 18, overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              {/* Table view's rows aren't part of the design's own responsive pass (it predates
+                  this feature) — a 7-column dense grid can't reasonably collapse to one column like
+                  the Pipeline grid does, so it scrolls horizontally instead of squishing illegibly. */}
+            <div style={{ background: '#fff', border: `1px solid ${colors.cardBorder}`, borderRadius: 18, overflow: 'hidden', minWidth: 720 }}>
               <div style={{ display: 'grid', gridTemplateColumns: TABLE_GRID, gap: 10, padding: '12px 14px', fontSize: 10, fontWeight: 800, color: colors.faint, letterSpacing: '.04em', textTransform: 'uppercase', background: colors.inputBg }}>
                 <span>Service</span>
                 <span>Time</span>
@@ -268,8 +272,9 @@ export default function BoardPage() {
                 );
               })}
             </div>
+            </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 14, alignItems: 'start' }}>
+            <div className="grid-pipe" style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 14, alignItems: 'start' }}>
               {COLUMNS.map((col) => {
                 const cards = filtered.filter((b) => b.status === col.key);
                 return (

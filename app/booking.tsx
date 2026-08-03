@@ -3,18 +3,20 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../src/theme';
-import { MIN_BOOKING_HOURS, SERVICES, formatHour12, nextDates, peso, toLocalIso } from '../src/data';
-import { PrimaryButton } from '../src/components/UI';
+import { MIN_BOOKING_HOURS, formatHour12, nextDates, peso, toLocalIso } from '../src/data';
+import { ErrorState, LoadingState, PrimaryButton } from '../src/components/UI';
 import { useBooking } from '../src/store';
 import { useAvailableStartHours } from '../src/lib/availability';
+import { findService, useServices } from '../src/lib/services';
 
 const DATES = nextDates();
 const MAX_BOOKING_HOURS = 8;
 
 export default function Booking() {
   const b = useBooking();
-  const svc = b.service ? SERVICES[b.service] : SERVICES.cleaning;
-  const isPerHour = svc.pricingModel === 'per_hour';
+  const { data: serviceRows, isLoading: loadingServices, isError: errorServices, refetch: refetchServices } = useServices();
+  const svc = findService(serviceRows, b.service ?? 'cleaning');
+  const isPerHour = svc?.pricingModel === 'per_hour';
 
   const [units, setUnits] = useState(b.units);
   const [hours, setHours] = useState(Math.max(b.durationHours, MIN_BOOKING_HOURS));
@@ -26,7 +28,7 @@ export default function Booking() {
   // server (bookings_capacity_guard trigger) recomputes this same formula
   // and is the real source of truth; this is just so the grid greys the
   // right cells before the customer even submits.
-  const durationHours = isPerHour ? hours : Math.max(1, Math.ceil((units * (svc.estimatedMinutesPerUnit ?? 45)) / 60));
+  const durationHours = isPerHour ? hours : Math.max(1, Math.ceil((units * (svc?.estimatedMinutesPerUnit ?? 45)) / 60));
 
   const { data: availability, isLoading: availabilityLoading } = useAvailableStartHours(b.service, dateIso, durationHours);
 
@@ -56,13 +58,29 @@ export default function Booking() {
   }, [durationHours, dateIso]);
 
   const ready = !!date && startHour !== null;
-  const total = isPerHour ? durationHours * (svc.hourlyRate ?? 0) : svc.price * units;
+  const total = isPerHour ? durationHours * (svc?.hourlyRate ?? 0) : (svc?.price ?? 0) * units;
 
   const cont = () => {
     if (startHour === null) return;
     b.set({ units, durationHours, date, dateIso, startHour });
     router.push('/location');
   };
+
+  if (loadingServices) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <LoadingState message="Loading service…" />
+      </SafeAreaView>
+    );
+  }
+
+  if (errorServices || !svc) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ErrorState onRetry={() => refetchServices()} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe}>

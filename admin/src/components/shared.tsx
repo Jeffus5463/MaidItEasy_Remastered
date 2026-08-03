@@ -7,6 +7,7 @@ import { fonts } from '@/theme';
 export function TopBar({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div
+      className="topbar"
       style={{
         display: 'flex',
         alignItems: 'center',

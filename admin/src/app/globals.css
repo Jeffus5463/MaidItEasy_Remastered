@@ -112,3 +112,38 @@ textarea:focus {
     transform: none;
   }
 }
+
+.bottomnav {
+  display: none;
+}
+@media (max-width: 720px) {
+  .sidebar {
+    display: none !important;
+  }
+  .bottomnav {
+    display: flex !important;
+  }
+  .main-scroll {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+  }
+  .main-pad {
+    padding: 18px 15px 98px !important;
+  }
+  .grid-kpi {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid-pipe {
+    grid-template-columns: 1fr !important;
+  }
+  .roster-stats {
+    flex-wrap: wrap !important;
+  }
+  .topbar {
+    margin-bottom: 16px !important;
+  }
+}
