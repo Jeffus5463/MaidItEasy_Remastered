@@ -87,7 +87,7 @@ export async function declineJob(id: string, reason: string, note: string) {
 
   const { error } = await supabase
     .from('bookings')
-    .update({ decline_reason: reason, decline_note: note.trim() || null })
+    .update({ decline_reason: reason, decline_note: note.trim() || null, declined_at: new Date().toISOString() })
     .eq('id', id);
   if (error) throw error;
 }

@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useBookings, usePartners, usePayments } from '@/lib/data';
-import { formatWhen, isToday, peso, serviceLabel } from '@/lib/format';
+import { formatWhen, isToday, peso, serviceLabel, timeAgo } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { TopBar, chip, svcIconWrap } from '@/components/shared';
 import { AlertIcon, CalendarIcon, GcashIcon, PesoIcon, PeopleIcon, ChevronRightIcon, BroomIcon, AirconIcon } from '@/components/icons';
+import { useNavBadgeCounts } from '@/components/Sidebar';
 
 const STATUS_CHIP: Record<string, [string, string, string]> = {
   pending: [colors.goldTint, colors.goldText, 'Unassigned'],
@@ -23,8 +24,8 @@ export default function SummaryPage() {
 
   const loading = loadingBookings || !bookings;
 
+  const { needsAttention, declined, mostRecentDeclineAt } = useNavBadgeCounts();
   const bookingsToday = bookings?.filter((b) => isToday(b.date)) ?? [];
-  const unassigned = bookings?.filter((b) => b.status === 'pending' && !b.partner_id) ?? [];
   const pendingGcash = payments?.filter((p) => p.status === 'awaiting_payment' && p.method === 'gcash') ?? [];
 
   const bookingById = new Map((bookings ?? []).map((b) => [b.id, b]));
@@ -47,7 +48,7 @@ export default function SummaryPage() {
 
   const kpis = [
     { icon: <CalendarIcon />, tint: colors.primaryTint, value: String(bookingsToday.length), label: 'Bookings today' },
-    { icon: <AlertIcon />, tint: colors.goldTintAlt, value: String(unassigned.length), label: 'Unassigned', warn: unassigned.length > 0 },
+    { icon: <AlertIcon />, tint: colors.goldTintAlt, value: String(needsAttention), label: 'Unassigned', warn: needsAttention > 0 },
     { icon: <PesoIcon />, tint: colors.primaryTint, value: peso(gcashTotal + cashTotal), label: 'Collected today' },
     { icon: <PeopleIcon />, tint: colors.primaryTint, value: `${activeVerifiedPartners} / ${totalPartners}`, label: 'Verified partners active' },
   ];
@@ -127,11 +128,11 @@ export default function SummaryPage() {
 
               <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 20 }}>
                 <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 16, marginBottom: 12 }}>Needs your attention</div>
-                {unassigned.length === 0 && pendingGcash.length === 0 ? (
+                {needsAttention === 0 && declined === 0 && pendingGcash.length === 0 ? (
                   <div style={{ color: colors.muted, fontSize: 13 }}>All caught up.</div>
                 ) : (
                   <>
-                    {unassigned.length > 0 && (
+                    {needsAttention > 0 && (
                       <Link
                         href="/board"
                         style={{
@@ -150,11 +151,39 @@ export default function SummaryPage() {
                         </span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 700, fontSize: '13.5px', color: colors.goldTextDeep }}>
-                            {unassigned.length} booking{unassigned.length === 1 ? '' : 's'} unassigned
+                            {needsAttention} booking{needsAttention === 1 ? '' : 's'} need{needsAttention === 1 ? 's' : ''} attention
                           </div>
-                          <div style={{ fontSize: '11.5px', color: '#b58e4f' }}>Assign a verified partner</div>
+                          <div style={{ fontSize: '11.5px', color: '#b58e4f' }}>No worker is free — assign manually</div>
                         </div>
                         <ChevronRightIcon color="#c98a2e" />
+                      </Link>
+                    )}
+                    {declined > 0 && (
+                      <Link
+                        href="/board"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12,
+                          padding: 11,
+                          borderRadius: 12,
+                          background: colors.dangerTint,
+                          border: `1px solid ${colors.dangerBorder}`,
+                          marginBottom: 10,
+                        }}
+                      >
+                        <span style={{ width: 34, height: 34, borderRadius: 10, background: colors.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+                          <AlertIcon size={18} color="#fff" />
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: '13.5px', color: colors.danger }}>
+                            {declined} booking{declined === 1 ? '' : 's'} recently declined
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: colors.danger }}>
+                            Review before confirming{mostRecentDeclineAt ? ` · most recent ${timeAgo(mostRecentDeclineAt)}` : ''}
+                          </div>
+                        </div>
+                        <ChevronRightIcon color={colors.danger} />
                       </Link>
                     )}
                     {pendingGcash.length > 0 && (

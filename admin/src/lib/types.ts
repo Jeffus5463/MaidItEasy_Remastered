@@ -71,6 +71,7 @@ export interface BookingRow {
   status: BookingStatus;
   decline_reason: string | null;
   decline_note: string | null;
+  declined_at: string | null;
   refund_needed: boolean;
   cancel_reason: string | null;
   created_at: string;
@@ -93,6 +94,7 @@ export interface PaymentRow {
   booking_id: string;
   method: PaymentMethod;
   gcash_ref: string | null;
+  proof_path: string | null;
   status: PaymentStatus;
   reject_reason: string | null;
   created_at: string;

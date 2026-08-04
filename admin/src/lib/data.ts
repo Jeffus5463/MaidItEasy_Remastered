@@ -76,7 +76,7 @@ export function useAssignPartner() {
     mutationFn: async ({ bookingId, partnerId }: { bookingId: string; partnerId: string }) => {
       const { error } = await supabase
         .from('bookings')
-        .update({ partner_id: partnerId, status: 'assigned', assignment_source: 'manual', decline_reason: null, decline_note: null })
+        .update({ partner_id: partnerId, status: 'assigned', assignment_source: 'manual', decline_reason: null, decline_note: null, declined_at: null })
         .eq('id', bookingId);
       if (error) throw error;
     },
@@ -149,6 +149,16 @@ export function useRecordPayout() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-earnings'] }),
   });
+}
+
+const PAYMENT_PROOF_SIGNED_URL_TTL = 60 * 60 * 6; // 6 hours — matches getPartnerDocumentUrl.
+
+// payments.proof_path stores the bucket PATH, not a resolved URL (the
+// payment-proofs bucket is private) — resolve lazily at read time.
+export async function getPaymentProofUrl(path: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('payment-proofs').createSignedUrl(path, PAYMENT_PROOF_SIGNED_URL_TTL);
+  if (error) throw error;
+  return data.signedUrl;
 }
 
 export function useVerifyPayment() {

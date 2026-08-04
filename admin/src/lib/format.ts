@@ -57,3 +57,15 @@ export function serviceLabel(serviceId: string, units: number | null, tier: stri
 export function customerLabel(booking: { customer_name: string | null; contact: string }) {
   return booking.customer_name || booking.contact;
 }
+
+// isoTimestamp -> "2m ago" / "3h ago" / "5d ago" — coarse, dispatcher-facing
+// recency (see bookings.declined_at), not a precision clock.
+export function timeAgo(isoTimestamp: string) {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(isoTimestamp).getTime()) / 60000));
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  return `${days}d ago`;
+}

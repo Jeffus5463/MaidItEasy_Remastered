@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useBookings, usePayments, useVerifyPayment } from '@/lib/data';
+import { getPaymentProofUrl, useBookings, usePayments, useVerifyPayment } from '@/lib/data';
 import { customerLabel, formatWhen, peso, serviceLabel } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { TopBar, chip } from '@/components/shared';
@@ -15,6 +15,17 @@ export default function GcashPage() {
   const verify = useVerifyPayment();
   const [rejecting, setRejecting] = useState<PaymentRow | null>(null);
   const [query, setQuery] = useState('');
+  const [viewingPath, setViewingPath] = useState<string | null>(null);
+
+  const viewProof = async (path: string) => {
+    setViewingPath(path);
+    try {
+      const url = await getPaymentProofUrl(path);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } finally {
+      setViewingPath(null);
+    }
+  };
 
   const bookingById = new Map((bookings ?? []).map((b) => [b.id, b]));
   const gcashPayments = (payments ?? []).filter((p) => p.method === 'gcash');
@@ -126,6 +137,15 @@ export default function GcashPage() {
                   <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 17, letterSpacing: '.02em', color: colors.blueText, marginTop: 2 }}>
                     {p.gcash_ref ?? '—'}
                   </div>
+                  {p.proof_path ? (
+                    <button
+                      onClick={() => viewProof(p.proof_path!)}
+                      disabled={viewingPath === p.proof_path}
+                      style={{ border: 'none', cursor: 'pointer', background: 'transparent', color: colors.primary, fontWeight: 700, fontSize: '11.5px', padding: 0, marginTop: 4 }}
+                    >
+                      {viewingPath === p.proof_path ? 'Opening…' : 'View screenshot'}
+                    </button>
+                  ) : null}
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 11, color: colors.faint, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>Amount</div>

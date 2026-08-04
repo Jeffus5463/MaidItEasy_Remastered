@@ -11,28 +11,54 @@ import { BoardIcon, CatalogIcon, GcashIcon, HomeIcon, PayoutIcon, RosterIcon } f
 // itself still shows the full `label`.
 export const NAV = [
   { href: '/', label: 'Daily summary', short: 'Summary', Icon: HomeIcon, badge: 'none' as const },
-  { href: '/board', label: 'Booking board', short: 'Board', Icon: BoardIcon, badge: 'unassigned' as const },
+  { href: '/board', label: 'Booking board', short: 'Board', Icon: BoardIcon, badge: 'attention' as const },
   { href: '/roster', label: 'Worker roster', short: 'Roster', Icon: RosterIcon, badge: 'none' as const },
   { href: '/catalog', label: 'Service catalog', short: 'Catalog', Icon: CatalogIcon, badge: 'none' as const },
   { href: '/gcash', label: 'GCash verification', short: 'GCash', Icon: GcashIcon, badge: 'gcash' as const },
   { href: '/payouts', label: 'Payouts', short: 'Payouts', Icon: PayoutIcon, badge: 'none' as const },
 ];
 
-// Shared by Sidebar and BottomNav — same badge semantics, same underlying
-// (already-cached) queries, so computing it in each is free.
+// Shared by Sidebar, BottomNav, and the Daily summary page — same
+// underlying (already-cached) queries, so computing it more than once is
+// free, and it keeps the nav badges and the summary's "Needs your
+// attention" card from drifting apart (Genuine logic #4, CLAUDE.md ->
+// Admin console).
+//
+// Two distinct "attention" cases, surfaced separately: `needsAttention` is
+// a genuinely blocked booking (release_and_rehold() found nobody free —
+// `qualified_free_partners()` excludes the just-declined/unassigned
+// partner, see supabase/migrations/*_hourly_booking_capacity.sql);
+// `declined` is broader — any booking still carrying a decline flag,
+// including ones release_and_rehold() *did* successfully re-hold, since an
+// admin still needs to notice and confirm it (decline_reason/declined_at
+// only clear on the next useAssignPartner() call). `attention` is their
+// union (deduped by booking id) for the single nav pill.
 export function useNavBadgeCounts() {
   const { data: bookings } = useBookings();
   const { data: payments } = usePayments();
+
+  const pending = bookings?.filter((b) => b.status === 'pending') ?? [];
+  const needsAttention = pending.filter((b) => !b.partner_id);
+  const declined = (bookings ?? []).filter((b) => !!b.decline_reason);
+  const attentionIds = new Set([...needsAttention, ...declined].map((b) => b.id));
+  const mostRecentDeclineAt = declined.reduce<string | null>(
+    (latest, b) => (b.declined_at && (!latest || b.declined_at > latest) ? b.declined_at : latest),
+    null
+  );
+
   return {
-    unassigned: bookings?.filter((b) => b.status === 'pending' && !b.partner_id).length ?? 0,
+    attention: attentionIds.size,
     gcash: payments?.filter((p) => p.status === 'awaiting_payment').length ?? 0,
+    needsAttention: needsAttention.length,
+    declined: declined.length,
+    mostRecentDeclineAt,
   };
 }
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { unassigned: unassignedCount, gcash: pendingGcashCount } = useNavBadgeCounts();
+  const { attention: attentionCount, gcash: pendingGcashCount } = useNavBadgeCounts();
   const { session } = useAdminSession();
 
   const logOut = async () => {
@@ -88,7 +114,7 @@ export function Sidebar() {
       </div>
       {NAV.map((n) => {
         const active = pathname === n.href;
-        const badgeCount = n.badge === 'unassigned' ? unassignedCount : n.badge === 'gcash' ? pendingGcashCount : 0;
+        const badgeCount = n.badge === 'attention' ? attentionCount : n.badge === 'gcash' ? pendingGcashCount : 0;
         return (
           <Link
             key={n.href}

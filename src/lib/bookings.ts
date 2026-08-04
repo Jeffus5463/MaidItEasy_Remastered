@@ -46,6 +46,44 @@ export interface CreateBookingInput {
   total: number;
   payment: 'gcash' | 'cash';
   gcashRef: string;
+  proofPath: string | null;
+}
+
+// Friendly pre-check before even attempting the booking — the real backstop
+// is the enforce_gcash_ref_uniqueness() trigger (supabase/migrations/
+// *_gcash_payment_integrity.sql), which excludes cancelled bookings so a
+// reference from an expired/cancelled booking can still be legitimately
+// reused. gcash_ref_in_use() is a boolean-only SECURITY DEFINER RPC, so this
+// works without the customer's session needing to read other customers'
+// payments rows.
+export async function gcashRefInUse(gcashRef: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('gcash_ref_in_use', { p_gcash_ref: gcashRef });
+  if (error) throw error;
+  return !!data;
+}
+
+// Uploads a picked GCash payment screenshot to the private payment-proofs
+// bucket, keyed by the customer's own auth uid (known at upload time, unlike
+// a booking id) — mirrors src/lib/partner.ts#uploadJobPhoto's shape. Returns
+// the storage path, stored directly in payments.proof_path; the customer
+// never needs to re-view it, so no signed-URL resolution here.
+export async function uploadPaymentProof(localUri: string): Promise<string> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw new Error('Not signed in.');
+
+  const response = await fetch(localUri);
+  const blob = await response.blob();
+  const path = `${session.user.id}/${Date.now()}.jpg`;
+
+  const { error } = await supabase.storage.from('payment-proofs').upload(path, blob, {
+    contentType: 'image/jpeg',
+    upsert: true,
+  });
+  if (error) throw error;
+
+  return path;
 }
 
 export async function createBooking(input: CreateBookingInput) {
@@ -110,6 +148,7 @@ export async function createBooking(input: CreateBookingInput) {
     booking_id: booking.id,
     method: input.payment,
     gcash_ref: input.payment === 'gcash' ? input.gcashRef : null,
+    proof_path: input.payment === 'gcash' ? input.proofPath : null,
     status: input.payment === 'cash' ? 'verified' : 'awaiting_payment',
   });
   if (paymentError) throw paymentError;
@@ -139,6 +178,7 @@ export interface BookingRow {
   accepted_at: string | null;
   decline_reason: string | null;
   decline_note: string | null;
+  declined_at: string | null;
   refund_needed: boolean;
   cancel_reason: string | null;
   created_at: string;
