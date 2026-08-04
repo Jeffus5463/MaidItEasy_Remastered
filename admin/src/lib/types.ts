@@ -29,6 +29,7 @@ export interface PartnerRow {
   service_tags: string[];
   barangay: string | null;
   contact: string | null;
+  id_verified: boolean;
   nbi_verified: boolean;
   agreement_verified: boolean;
   available_days: string[];
@@ -37,6 +38,18 @@ export interface PartnerRow {
   auth_user_id: string | null;
   email: string | null;
   must_change_password: boolean;
+}
+
+export type PartnerDocumentType = 'id' | 'nbi_clearance' | 'agreement';
+
+export interface PartnerDocument {
+  id: string;
+  partner_id: string;
+  doc_type: PartnerDocumentType;
+  storage_path: string;
+  expires_at: string | null;
+  uploaded_by: string | null;
+  created_at: string;
 }
 
 export interface BookingRow {

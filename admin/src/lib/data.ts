@@ -7,7 +7,7 @@
 // Only the "Bookings today" KPI on the summary page filters by calendar date.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
-import { BookingRow, EarningRow, PartnerRow, PaymentRow, ServiceRow } from './types';
+import { BookingRow, EarningRow, PartnerDocument, PartnerDocumentType, PartnerRow, PaymentRow, ServiceRow } from './types';
 
 // All 6 statuses, including 'cancelled' (Phase 2.6) — the board needs to
 // show cancelled/refund-needed bookings, not just active ones.
@@ -265,6 +265,114 @@ export function useUpdateWorkerHours() {
   return useMutation({
     mutationFn: async ({ id, startHour, endHour }: { id: string; startHour: number; endHour: number }) => {
       const { error } = await supabase.from('partners').update({ available_start_hour: startHour, available_end_hour: endHour }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-partners'] }),
+  });
+}
+
+const DOCUMENT_SIGNED_URL_TTL = 60 * 60 * 6; // 6 hours — matches src/lib/partner.ts#getJobPhotoUrl.
+
+// partner_documents.storage_path stores the bucket PATH, not a resolved URL
+// (the bucket is private, same reasoning as job-photos) — resolve lazily at
+// read time so the URL is always fresh.
+export async function getPartnerDocumentUrl(path: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('partner-documents').createSignedUrl(path, DOCUMENT_SIGNED_URL_TTL);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+// No dedup at the DB level (partner_documents is append-only, same as
+// job_photos) — a re-upload (e.g. an NBI renewal) just inserts a new row, so
+// this reduces client-side to the most recent row per (partner_id,
+// doc_type), keyed as "<partnerId>:<docType>" for O(1) lookup in the roster.
+export function usePartnerDocuments() {
+  return useQuery({
+    queryKey: ['admin-partner-documents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('partner_documents')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const latest = new Map<string, PartnerDocument>();
+      for (const doc of data as PartnerDocument[]) {
+        const key = `${doc.partner_id}:${doc.doc_type}`;
+        if (!latest.has(key)) latest.set(key, doc);
+      }
+      return latest;
+    },
+  });
+}
+
+const VERIFIED_COLUMN: Record<PartnerDocumentType, 'id_verified' | 'nbi_verified' | 'agreement_verified'> = {
+  id: 'id_verified',
+  nbi_clearance: 'nbi_verified',
+  agreement: 'agreement_verified',
+};
+
+export interface UploadPartnerDocumentInput {
+  partnerId: string;
+  docType: PartnerDocumentType;
+  file: File;
+  expiresAt: string | null; // yyyy-mm-dd — only meaningful for 'nbi_clearance'
+  markVerified: boolean;
+}
+
+// Uploading a document and marking it verified are separate admin decisions
+// (an admin may attach a scan for the record before deciding it's good) —
+// markVerified only patches the partner's own id_verified/nbi_verified/
+// agreement_verified column when true. Never touches `verified` itself,
+// which stays the independent dispatch gate (qualified_free_partners()).
+export function useUploadPartnerDocument() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ partnerId, docType, file, expiresAt, markVerified }: UploadPartnerDocumentInput) => {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const path = `${partnerId}/${docType}-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('partner-documents')
+        .upload(path, file, { contentType: file.type || undefined, upsert: true });
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const { error: docError } = await supabase.from('partner_documents').insert({
+        partner_id: partnerId,
+        doc_type: docType,
+        storage_path: path,
+        expires_at: docType === 'nbi_clearance' ? expiresAt : null,
+        uploaded_by: session?.user.id ?? null,
+      });
+      if (docError) throw docError;
+
+      if (markVerified) {
+        const { error: partnerError } = await supabase
+          .from('partners')
+          .update({ [VERIFIED_COLUMN[docType]]: true })
+          .eq('id', partnerId);
+        if (partnerError) throw partnerError;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-partner-documents'] });
+      qc.invalidateQueries({ queryKey: ['admin-partners'] });
+    },
+  });
+}
+
+// Quick verify/revoke without a new upload — e.g. correcting a mistake, or
+// approving a document that was already attached. Deliberately separate from
+// useUploadPartnerDocument's markVerified (which only ever fires alongside a
+// fresh document); this one just flips the flag directly.
+export function useSetVettingFlag() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, docType, value }: { id: string; docType: PartnerDocumentType; value: boolean }) => {
+      const { error } = await supabase.from('partners').update({ [VERIFIED_COLUMN[docType]]: value }).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-partners'] }),

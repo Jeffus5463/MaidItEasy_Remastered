@@ -1,14 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { useToggleWorkerActive, useToggleWorkerDay, useToggleWorkerVerified, useUpdateWorkerHours, usePartners } from '@/lib/data';
+import {
+  useToggleWorkerActive,
+  useToggleWorkerDay,
+  useToggleWorkerVerified,
+  useUpdateWorkerHours,
+  usePartners,
+  usePartnerDocuments,
+  useSetVettingFlag,
+  getPartnerDocumentUrl,
+} from '@/lib/data';
 import { formatHour12 } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { AddWorkerModal } from '@/components/AddWorkerModal';
 import { ResetPasswordModal } from '@/components/ResetPasswordModal';
+import { VerificationDocumentModal } from '@/components/VerificationDocumentModal';
 import { TopBar, Toggle, Avatar, chip } from '@/components/shared';
-import { CrossIcon, PendClockIcon, PlusIcon, TickIcon } from '@/components/icons';
-import { PartnerRow } from '@/lib/types';
+import { AlertIcon, CrossIcon, PendClockIcon, PlusIcon, TickIcon } from '@/components/icons';
+import { PartnerDocumentType, PartnerRow } from '@/lib/types';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 // 9 -> 20 as start-hour options (business_open_hour()..business_close_hour()-1,
@@ -21,15 +31,18 @@ type Status = 'verified' | 'pending' | 'action';
 // The dispatch-eligibility badge must never disagree with
 // qualified_free_partners() (supabase/migrations/*_hourly_booking_capacity.sql),
 // which gates purely on `partners.verified` — so 'verified' here means
-// exactly `p.verified`, nothing else. nbi_verified/agreement_verified are
-// document-vetting indicators, not dispatch gates; among NOT-yet-verified
+// exactly `p.verified`, nothing else. id_verified/nbi_verified/agreement_verified
+// are document-vetting indicators, not dispatch gates; among NOT-yet-verified
 // workers they just help triage why (shown as 'pending' vs 'action needed'),
 // they never make an unverified worker show as "Verified".
 function computeStatus(p: PartnerRow): Status {
   if (p.verified) return 'verified';
-  if (!p.agreement_verified) return 'action';
+  if (!p.agreement_verified || !p.id_verified) return 'action';
   return 'pending';
 }
+
+const DOC_LABEL: Record<PartnerDocumentType, string> = { id: 'ID', nbi_clearance: 'NBI', agreement: 'Agreement' };
+const isPast = (isoDate: string) => new Date(isoDate) < new Date(new Date().toDateString());
 
 const STATUS_CHIP: Record<Status, [string, string, string]> = {
   verified: [colors.primaryTint, colors.primaryTintText, 'Verified'],
@@ -41,12 +54,28 @@ const SVC_LABEL: Record<string, string> = { cleaning: 'Cleaning', aircon: 'Airco
 
 export default function RosterPage() {
   const { data: partners, isLoading } = usePartners();
+  const { data: docs } = usePartnerDocuments();
   const toggleActive = useToggleWorkerActive();
   const toggleVerified = useToggleWorkerVerified();
   const toggleDay = useToggleWorkerDay();
   const updateHours = useUpdateWorkerHours();
+  const setVettingFlag = useSetVettingFlag();
   const [addOpen, setAddOpen] = useState(false);
   const [resetting, setResetting] = useState<PartnerRow | null>(null);
+  const [docModal, setDocModal] = useState<{ partner: PartnerRow; docType: PartnerDocumentType } | null>(null);
+  const [viewingPath, setViewingPath] = useState<string | null>(null);
+
+  const viewDoc = async (path: string) => {
+    setViewingPath(path);
+    try {
+      const url = await getPartnerDocumentUrl(path);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } finally {
+      setViewingPath(null);
+    }
+  };
+
+  const linkBtn: React.CSSProperties = { border: 'none', cursor: 'pointer', background: 'transparent', color: colors.primary, fontWeight: 700, fontSize: 11, padding: 0 };
 
   const verifiedCount = (partners ?? []).filter((p) => computeStatus(p) === 'verified').length;
   const pendingCount = (partners ?? []).filter((p) => computeStatus(p) === 'pending').length;
@@ -73,7 +102,7 @@ export default function RosterPage() {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div style={{ fontSize: 13, color: colors.muted, fontWeight: 600 }}>
-          Documents (ID · NBI · agreement) are vetted offline. Set service tags &amp; available days to control dispatch.
+          Upload ID, NBI clearance &amp; agreement below to back up vetting. Set service tags &amp; available days to control dispatch.
         </div>
         <button
           onClick={() => setAddOpen(true)}
@@ -149,18 +178,46 @@ export default function RosterPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 22, marginTop: 14, paddingTop: 14, borderTop: '1px solid #f2ece0', flexWrap: 'wrap' }}>
-                <div>
+                <div style={{ minWidth: 260 }}>
                   <div style={{ fontSize: 10, fontWeight: 800, color: colors.faint, letterSpacing: '.05em', textTransform: 'uppercase', marginBottom: 5 }}>Vetting</div>
-                  <div style={{ display: 'flex', gap: 14 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '12.5px', fontWeight: 700, color: colors.primaryTintText }}>
-                      <TickIcon /> ID
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '12.5px', fontWeight: 700, color: markColor(w.nbi_verified, status === 'pending') }}>
-                      {mark(w.nbi_verified, status === 'pending')} NBI
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '12.5px', fontWeight: 700, color: markColor(w.agreement_verified, false) }}>
-                      {mark(w.agreement_verified, false)} Agreement
-                    </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {(['id', 'nbi_clearance', 'agreement'] as PartnerDocumentType[]).map((docType) => {
+                      const verifiedFlag = docType === 'id' ? w.id_verified : docType === 'nbi_clearance' ? w.nbi_verified : w.agreement_verified;
+                      const doc = docs?.get(`${w.id}:${docType}`) ?? null;
+                      const expired = docType === 'nbi_clearance' && !!doc?.expires_at && isPast(doc.expires_at);
+                      return (
+                        <div key={docType} style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: '12.5px', fontWeight: 700, color: markColor(verifiedFlag, status === 'pending' && docType !== 'id') }}>
+                            {mark(verifiedFlag, status === 'pending' && docType !== 'id')} {DOC_LABEL[docType]}
+                          </span>
+                          {expired ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: colors.danger }}>
+                              <AlertIcon size={12} color={colors.danger} /> Expired {new Date(doc!.expires_at as string).toLocaleDateString()}
+                            </span>
+                          ) : docType === 'nbi_clearance' && doc?.expires_at ? (
+                            <span style={{ fontSize: 11, color: colors.muted }}>Expires {new Date(doc.expires_at).toLocaleDateString()}</span>
+                          ) : null}
+                          {doc ? (
+                            <button onClick={() => viewDoc(doc.storage_path)} disabled={viewingPath === doc.storage_path} style={linkBtn}>
+                              {viewingPath === doc.storage_path ? 'Opening…' : 'View'}
+                            </button>
+                          ) : null}
+                          {doc && !verifiedFlag ? (
+                            <button onClick={() => setVettingFlag.mutate({ id: w.id, docType, value: true })} style={linkBtn}>
+                              Mark verified
+                            </button>
+                          ) : null}
+                          {verifiedFlag ? (
+                            <button onClick={() => setVettingFlag.mutate({ id: w.id, docType, value: false })} style={{ ...linkBtn, color: colors.danger }}>
+                              Revoke
+                            </button>
+                          ) : null}
+                          <button onClick={() => setDocModal({ partner: w, docType })} style={linkBtn}>
+                            {doc ? 'Replace' : 'Upload'}
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
                 <div>
@@ -242,6 +299,14 @@ export default function RosterPage() {
 
       {addOpen ? <AddWorkerModal onClose={() => setAddOpen(false)} /> : null}
       {resetting ? <ResetPasswordModal partner={resetting} onClose={() => setResetting(null)} /> : null}
+      {docModal ? (
+        <VerificationDocumentModal
+          partner={docModal.partner}
+          docType={docModal.docType}
+          existingDoc={docs?.get(`${docModal.partner.id}:${docModal.docType}`) ?? null}
+          onClose={() => setDocModal(null)}
+        />
+      ) : null}
     </div>
   );
 }

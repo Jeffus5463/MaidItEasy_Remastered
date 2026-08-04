@@ -124,7 +124,7 @@ export function AddWorkerModal({ onClose }: { onClose: () => void }) {
       <div style={{ padding: '20px 22px 16px', borderBottom: `1px solid ${colors.cardBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 19 }}>Add worker</div>
-          <div style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>Contracted &amp; vetted offline. Documents confirmed in person.</div>
+          <div style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>Contracted offline — attach ID, NBI clearance &amp; agreement from the roster afterward.</div>
         </div>
         <div onClick={onClose} style={{ cursor: 'pointer', width: 32, height: 32, borderRadius: 9, background: '#fff', border: `1px solid ${colors.borderSoft}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
           <CloseIcon />

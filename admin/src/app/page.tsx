@@ -40,7 +40,7 @@ export default function SummaryPage() {
     .filter((p) => p.method === 'cash')
     .reduce((sum, p) => sum + (bookingById.get(p.booking_id)?.total ?? 0), 0);
 
-  const activeVerifiedPartners = (partners ?? []).filter((p) => p.active && p.verified && p.nbi_verified).length;
+  const activeVerifiedPartners = (partners ?? []).filter((p) => p.active && p.verified && p.nbi_verified && p.id_verified).length;
   const totalPartners = partners?.length ?? 0;
 
   const recent = (bookings ?? []).slice(0, 6);

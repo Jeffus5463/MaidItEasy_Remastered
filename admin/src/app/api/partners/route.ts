@@ -96,8 +96,15 @@ export async function POST(request: NextRequest) {
         service_tags: serviceTags,
         commission_rate: (commissionRate ?? 20) / 100,
         verified: !!verified,
-        nbi_verified: !!verified,
-        agreement_verified: true,
+        // id_verified/nbi_verified/agreement_verified always start false --
+        // a new worker claims no document-backed vetting until an admin
+        // actually attaches one from the roster (partner_documents,
+        // *_partner_verification_documents.sql). The "verified" toggle above
+        // stays the real dispatch gate; it must not silently fake the other
+        // two the way this insert used to.
+        id_verified: false,
+        nbi_verified: false,
+        agreement_verified: false,
         active: true,
         available_days: days,
         available_start_hour: startHour,
