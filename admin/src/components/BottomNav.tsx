@@ -10,7 +10,7 @@ import { NAV, useNavBadgeCounts } from './Sidebar';
 // drift out of sync on which pages exist or what a badge means.
 export function BottomNav() {
   const pathname = usePathname();
-  const { attention: attentionCount, gcash: pendingGcashCount } = useNavBadgeCounts();
+  const { attention: attentionCount, gcash: pendingGcashCount, refunds: refundsCount } = useNavBadgeCounts();
 
   return (
     <div
@@ -31,7 +31,7 @@ export function BottomNav() {
     >
       {NAV.map((n) => {
         const active = pathname === n.href;
-        const badgeCount = n.badge === 'attention' ? attentionCount : n.badge === 'gcash' ? pendingGcashCount : 0;
+        const badgeCount = n.badge === 'attention' ? attentionCount : n.badge === 'gcash' ? pendingGcashCount : n.badge === 'refunds' ? refundsCount : 0;
         return (
           <Link
             key={n.href}

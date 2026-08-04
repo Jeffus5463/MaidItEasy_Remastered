@@ -87,6 +87,9 @@ export default function Bookings() {
                 {booking.status === 'cancelled' && booking.cancel_reason === 'expired-unpaid' && (
                   <Text style={styles.expiredNote}>Expired — payment wasn't completed in time.</Text>
                 )}
+                {booking.status === 'cancelled' && booking.cancel_reason !== 'expired-unpaid' && booking.refund_needed && (
+                  <Text style={styles.expiredNote}>{booking.refunded_at ? 'Refunded.' : 'Refund pending.'}</Text>
+                )}
               </Pressable>
             );
           })}

@@ -180,6 +180,7 @@ export interface BookingRow {
   decline_note: string | null;
   declined_at: string | null;
   refund_needed: boolean;
+  refunded_at: string | null;
   cancel_reason: string | null;
   created_at: string;
 }
@@ -226,6 +227,7 @@ export interface AssignedPartner {
 }
 
 export interface PaymentInfo {
+  method: 'gcash' | 'cash';
   status: 'awaiting_payment' | 'verified' | 'rejected';
   reject_reason: string | null;
 }
@@ -241,7 +243,7 @@ export function useBookingTracking(bookingId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('bookings')
-        .select('*, partners(name, initials, rating, jobs_count), payments(status, reject_reason)')
+        .select('*, partners(name, initials, rating, jobs_count), payments(method, status, reject_reason)')
         .eq('id', bookingId)
         .single();
       if (error) throw error;
@@ -249,4 +251,15 @@ export function useBookingTracking(bookingId: string | null) {
     },
     enabled: !!bookingId,
   });
+}
+
+// The only path a customer cancels their own booking through — recomputes
+// refund eligibility server-side from the linked payment row rather than
+// trusting a client-side window calculation (supabase/migrations/
+// *_customer_cancellation.sql#cancel_booking_customer). Returns whether a
+// refund is now owed, for the confirmation copy.
+export async function cancelBookingCustomer(bookingId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('cancel_booking_customer', { p_booking_id: bookingId });
+  if (error) throw error;
+  return !!data;
 }

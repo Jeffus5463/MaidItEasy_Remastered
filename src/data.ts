@@ -60,6 +60,13 @@ export const BUSINESS_CLOSE_HOUR = 21;
 export const BUFFER_MINUTES = 30;
 export const MIN_BOOKING_HOURS = 2;
 
+// Must match cancellation_window_hours() in
+// supabase/migrations/*_customer_cancellation.sql, the real source of
+// truth enforced server-side by cancel_booking_customer() — a GCash
+// booking cancelled at least this many hours before start gets a full
+// refund; cash never owes one (nothing is collected until the job is done).
+export const CANCELLATION_WINDOW_HOURS = 2;
+
 // "9:00 AM" for a 24h hour (0-23).
 export function formatHour12(hour: number) {
   const period = hour >= 12 ? "PM" : "AM";
@@ -168,8 +175,9 @@ export function nextDates(count = 7): DateOpt[] {
 export const GCASH_NUMBER = "0917 555 0123";
 export const OFFICE = "MaidItEasy office along Perdices St., Dumaguete";
 
-// There is intentionally no customer self-cancel — changes/cancellations
-// go through a phone call, so this is the one place that number lives.
+// Self-cancel (pending/assigned, see app/tracking.tsx) covers most
+// cancellations; this is the fallback for a reschedule or a booking already
+// en_route/in_progress, so this is the one place that number lives.
 export const SUPPORT_PHONE = "0917 555 0100";
 
 export const DUMAGUETE_CENTER = { latitude: 9.3068, longitude: 123.3054 };

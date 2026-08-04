@@ -119,6 +119,22 @@ export function useCancelBooking() {
   });
 }
 
+// Stamps refunded_at on a cancelled booking whose payment was already
+// verified — a reconciliation record only, same posture as
+// useRecordPayout(): this doesn't send any money, it just clears the
+// booking off the /refunds queue and the Board's "Refund needed" banner
+// once an admin has actually sent the refund via GCash themselves.
+export function useMarkRefunded() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (bookingId: string) => {
+      const { error } = await supabase.from('bookings').update({ refunded_at: new Date().toISOString() }).eq('id', bookingId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-bookings'] }),
+  });
+}
+
 export function useEarnings() {
   return useQuery({
     queryKey: ['admin-earnings'],

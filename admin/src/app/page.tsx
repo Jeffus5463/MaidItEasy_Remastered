@@ -5,7 +5,7 @@ import { useBookings, usePartners, usePayments } from '@/lib/data';
 import { formatWhen, isToday, peso, serviceLabel, timeAgo } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { TopBar, chip, svcIconWrap } from '@/components/shared';
-import { AlertIcon, CalendarIcon, GcashIcon, PesoIcon, PeopleIcon, ChevronRightIcon, BroomIcon, AirconIcon } from '@/components/icons';
+import { AlertIcon, CalendarIcon, GcashIcon, PesoIcon, PeopleIcon, ChevronRightIcon, BroomIcon, AirconIcon, RefundIcon } from '@/components/icons';
 import { useNavBadgeCounts } from '@/components/Sidebar';
 
 const STATUS_CHIP: Record<string, [string, string, string]> = {
@@ -24,7 +24,7 @@ export default function SummaryPage() {
 
   const loading = loadingBookings || !bookings;
 
-  const { needsAttention, declined, mostRecentDeclineAt } = useNavBadgeCounts();
+  const { needsAttention, declined, mostRecentDeclineAt, refunds } = useNavBadgeCounts();
   const bookingsToday = bookings?.filter((b) => isToday(b.date)) ?? [];
   const pendingGcash = payments?.filter((p) => p.status === 'awaiting_payment' && p.method === 'gcash') ?? [];
 
@@ -128,7 +128,7 @@ export default function SummaryPage() {
 
               <div style={{ background: colors.card, border: `1px solid ${colors.cardBorder}`, borderRadius: 18, padding: 20 }}>
                 <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 16, marginBottom: 12 }}>Needs your attention</div>
-                {needsAttention === 0 && declined === 0 && pendingGcash.length === 0 ? (
+                {needsAttention === 0 && declined === 0 && pendingGcash.length === 0 && refunds === 0 ? (
                   <div style={{ color: colors.muted, fontSize: 13 }}>All caught up.</div>
                 ) : (
                   <>
@@ -197,6 +197,7 @@ export default function SummaryPage() {
                           borderRadius: 12,
                           background: colors.blueBg,
                           border: `1px solid ${colors.blueBorder}`,
+                          marginBottom: 10,
                         }}
                       >
                         <span style={{ width: 34, height: 34, borderRadius: 10, background: colors.gcashBrand, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
@@ -209,6 +210,31 @@ export default function SummaryPage() {
                           <div style={{ fontSize: '11.5px', color: '#6b90ad' }}>Check reference numbers</div>
                         </div>
                         <ChevronRightIcon color="#4d84ad" />
+                      </Link>
+                    )}
+                    {refunds > 0 && (
+                      <Link
+                        href="/refunds"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 12,
+                          padding: 11,
+                          borderRadius: 12,
+                          background: colors.dangerTint,
+                          border: `1px solid ${colors.dangerBorder}`,
+                        }}
+                      >
+                        <span style={{ width: 34, height: 34, borderRadius: 10, background: colors.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+                          <RefundIcon color="#fff" size={16} />
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: '13.5px', color: colors.danger }}>
+                            {refunds} refund{refunds === 1 ? '' : 's'} owed
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: colors.danger }}>Send via GCash, then mark it sent</div>
+                        </div>
+                        <ChevronRightIcon color={colors.danger} />
                       </Link>
                     )}
                   </>

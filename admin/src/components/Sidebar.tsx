@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useBookings, usePayments } from '@/lib/data';
 import { signOutAdmin, useAdminSession } from '@/lib/auth';
 import { colors, fonts } from '@/theme';
-import { BoardIcon, CatalogIcon, GcashIcon, HomeIcon, PayoutIcon, RosterIcon } from './icons';
+import { BoardIcon, CatalogIcon, GcashIcon, HomeIcon, PayoutIcon, RefundIcon, RosterIcon } from './icons';
 
 // `short` is the mobile bottom-nav label (BottomNav.tsx) — the sidebar
 // itself still shows the full `label`.
@@ -15,6 +15,7 @@ export const NAV = [
   { href: '/roster', label: 'Worker roster', short: 'Roster', Icon: RosterIcon, badge: 'none' as const },
   { href: '/catalog', label: 'Service catalog', short: 'Catalog', Icon: CatalogIcon, badge: 'none' as const },
   { href: '/gcash', label: 'GCash verification', short: 'GCash', Icon: GcashIcon, badge: 'gcash' as const },
+  { href: '/refunds', label: 'Refunds', short: 'Refunds', Icon: RefundIcon, badge: 'refunds' as const },
   { href: '/payouts', label: 'Payouts', short: 'Payouts', Icon: PayoutIcon, badge: 'none' as const },
 ];
 
@@ -45,6 +46,7 @@ export function useNavBadgeCounts() {
     (latest, b) => (b.declined_at && (!latest || b.declined_at > latest) ? b.declined_at : latest),
     null
   );
+  const refundsOwed = (bookings ?? []).filter((b) => b.refund_needed && !b.refunded_at);
 
   return {
     attention: attentionIds.size,
@@ -52,13 +54,14 @@ export function useNavBadgeCounts() {
     needsAttention: needsAttention.length,
     declined: declined.length,
     mostRecentDeclineAt,
+    refunds: refundsOwed.length,
   };
 }
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { attention: attentionCount, gcash: pendingGcashCount } = useNavBadgeCounts();
+  const { attention: attentionCount, gcash: pendingGcashCount, refunds: refundsCount } = useNavBadgeCounts();
   const { session } = useAdminSession();
 
   const logOut = async () => {
@@ -114,7 +117,7 @@ export function Sidebar() {
       </div>
       {NAV.map((n) => {
         const active = pathname === n.href;
-        const badgeCount = n.badge === 'attention' ? attentionCount : n.badge === 'gcash' ? pendingGcashCount : 0;
+        const badgeCount = n.badge === 'attention' ? attentionCount : n.badge === 'gcash' ? pendingGcashCount : n.badge === 'refunds' ? refundsCount : 0;
         return (
           <Link
             key={n.href}

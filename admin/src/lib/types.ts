@@ -73,6 +73,7 @@ export interface BookingRow {
   decline_note: string | null;
   declined_at: string | null;
   refund_needed: boolean;
+  refunded_at: string | null;
   cancel_reason: string | null;
   created_at: string;
 }

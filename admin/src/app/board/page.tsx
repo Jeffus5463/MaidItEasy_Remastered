@@ -36,7 +36,7 @@ function flagFor(b: BookingRow): string | null {
   if (b.decline_reason) return `Declined: ${b.decline_reason}${b.decline_note ? ` — ${b.decline_note}` : ''}`;
   if (b.status === 'pending' && !b.partner_id && !b.decline_reason) return 'Needs attention — no worker is free for this slot';
   if (b.status === 'cancelled' && b.cancel_reason === 'expired-unpaid') return 'Auto-cancelled: unpaid GCash booking expired';
-  if (b.refund_needed) return 'Refund needed — payment was already verified';
+  if (b.refund_needed && !b.refunded_at) return 'Refund needed — payment was already verified';
   return null;
 }
 
@@ -322,7 +322,7 @@ export default function BoardPage() {
                               <b>Auto-cancelled:</b> unpaid GCash booking expired
                             </div>
                           )}
-                          {b.refund_needed && (
+                          {b.refund_needed && !b.refunded_at && (
                             <div style={{ marginTop: 7, display: 'flex', alignItems: 'center', gap: 6, background: colors.goldTintAlt, border: `1px solid ${colors.goldBorder}`, borderRadius: 9, padding: '6px 9px', fontSize: '11px', color: colors.goldTextDeep }}>
                               <AlertIcon size={12} color={colors.goldText} />
                               <b>Refund needed</b> — payment was already verified
