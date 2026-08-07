@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
@@ -54,6 +54,22 @@ export default function JobDetail() {
       </SafeAreaView>
     );
   }
+  // Already accepted (or moved further along) — bounce forward to the active
+  // job screen instead of re-showing a stale Accept/Decline prompt. Mirrors
+  // active.tsx's RedirectToJob, which bounces the other way when a booking
+  // isn't accepted yet. Without this, a stale /job screen instance (reached
+  // via a double-tap push, the device back button, or a deep link) keeps
+  // showing "Accept job" even after accepted_at is already set.
+  const alreadyAccepted = booking.status !== 'assigned' || !!booking.accepted_at;
+  if (alreadyAccepted) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        <RedirectToActive id={booking.id} />
+        <LoadingState message="Loading job…" />
+      </SafeAreaView>
+    );
+  }
+
   const earn = Math.round(booking.total * COMMISSION_RATE);
   const digits = booking.contact.replace(/\D/g, '');
   const paymentMethod = booking.payments?.[0]?.method ?? null;
@@ -281,6 +297,13 @@ export default function JobDetail() {
       </Modal>
     </SafeAreaView>
   );
+}
+
+function RedirectToActive({ id }: { id: string }) {
+  useEffect(() => {
+    router.replace({ pathname: '/active', params: { id } });
+  }, [id]);
+  return null;
 }
 
 const styles = StyleSheet.create({
