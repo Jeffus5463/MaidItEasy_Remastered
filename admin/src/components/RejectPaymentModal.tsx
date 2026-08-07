@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRejectPayment } from '@/lib/data';
+import { bookingTicketCode } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { useToast } from './Toast';
 import { Modal } from './shared';
@@ -23,7 +24,7 @@ export function RejectPaymentModal({ payment, onClose }: { payment: PaymentRow; 
       { paymentId: payment.id, reason: reason.trim() },
       {
         onSuccess: () => {
-          showToast(`Payment #${payment.booking_id.slice(0, 4).toUpperCase()} rejected — customer will be notified`);
+          showToast(`Payment ${bookingTicketCode(payment.booking_id)} rejected — customer will be notified`);
           onClose();
         },
         onError: (err) => setError(err instanceof Error ? err.message : 'Could not reject this payment.'),

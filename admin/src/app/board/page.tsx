@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useBookings, usePartners, usePayments, useUnassignBooking } from '@/lib/data';
-import { customerLabel, formatWhen, serviceLabel } from '@/lib/format';
+import { bookingTicketCode, customerLabel, formatWhen, serviceLabel } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { AssignModal } from '@/components/AssignModal';
 import { CancelBookingModal } from '@/components/CancelBookingModal';
@@ -199,7 +199,7 @@ export default function BoardPage() {
                                 </span>
                               )}
                             </div>
-                            <div style={{ fontSize: '10.5px', fontWeight: 800, color: colors.mutedSoft, marginTop: 2, paddingLeft: 14 }}>#{b.id.slice(0, 4).toUpperCase()}</div>
+                            <div style={{ fontSize: '10.5px', fontWeight: 800, color: colors.mutedSoft, marginTop: 2, paddingLeft: 14 }}>{bookingTicketCode(b.id)}</div>
                           </div>
                           <span style={{ color: colors.inkSoft, fontWeight: 600 }}>{formatWhen(b.date, b.start_hour, b.duration_hours)}</span>
                           <div style={{ minWidth: 0, color: colors.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -293,7 +293,7 @@ export default function BoardPage() {
                       return (
                         <div key={b.id} style={{ background: '#fff', border: `1px solid ${colors.cardBorder}`, borderRadius: 13, padding: 12, marginBottom: 10, boxShadow: '0 2px 6px -3px rgba(20,40,36,.15)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: 11, fontWeight: 800, color: colors.mutedSoft }}>#{b.id.slice(0, 4).toUpperCase()}</span>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: colors.mutedSoft }}>{bookingTicketCode(b.id)}</span>
                             <span style={pay.style}>{pay.label}</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
@@ -402,7 +402,9 @@ export default function BoardPage() {
         </>
       )}
 
-      {assigning ? <AssignModal booking={assigning} onClose={() => setAssigning(null)} /> : null}
+      {assigning ? (
+        <AssignModal booking={assigning} payment={paymentByBooking.get(assigning.id)} onClose={() => setAssigning(null)} />
+      ) : null}
       {cancelling ? (
         <CancelBookingModal booking={cancelling} payment={paymentByBooking.get(cancelling.id)} onClose={() => setCancelling(null)} />
       ) : null}

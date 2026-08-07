@@ -1,7 +1,7 @@
 'use client';
 
 import { useCancelBooking } from '@/lib/data';
-import { formatWhen, serviceLabel } from '@/lib/format';
+import { bookingTicketCode, formatWhen, serviceLabel } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { useToast } from './Toast';
 import { Modal } from './shared';
@@ -22,15 +22,15 @@ export function CancelBookingModal({
   const paid = payment?.status === 'verified';
 
   const confirm = () => {
-    cancel.mutate(
-      { bookingId: booking.id, refundNeeded: paid },
-      {
-        onSuccess: () => {
-          showToast(paid ? 'Booking cancelled · flagged for manual refund' : 'Booking cancelled');
-          onClose();
-        },
-      }
-    );
+    cancel.mutate(booking.id, {
+      // refund_needed is computed server-side (admin_cancel_booking() RPC)
+      // from the live payment row — use ITS answer for the toast, not the
+      // `paid` value this modal opened with, which can be stale.
+      onSuccess: (refundNeeded) => {
+        showToast(refundNeeded ? 'Booking cancelled · flagged for manual refund' : 'Booking cancelled');
+        onClose();
+      },
+    });
   };
 
   return (
@@ -43,7 +43,7 @@ export function CancelBookingModal({
       </div>
       <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ fontSize: '13.5px', color: colors.inkSoft, lineHeight: 1.5 }}>
-          <b>#{booking.id.slice(0, 4).toUpperCase()}</b> — {serviceLabel(booking.service_id, booking.units, booking.tier, booking.duration_hours)},{' '}
+          <b>{bookingTicketCode(booking.id)}</b> — {serviceLabel(booking.service_id, booking.units, booking.tier, booking.duration_hours)},{' '}
           {formatWhen(booking.date, booking.start_hour, booking.duration_hours)}. This can&apos;t be undone from here.
         </div>
         {paid ? (

@@ -110,8 +110,15 @@ export const TRACK_STEPS: TrackStep[] = [
   { title: "Completed", d: "Job done — see the before & after" },
 ];
 
+// "Verifying payment"/"Payment issue" are derived display-only states (Phase
+// 14) — not a new bookings.status enum value. They're computed client-side
+// from the linked GCash payment's status (see app/tracking.tsx,
+// app/bookings.tsx), overriding the label a booking's real DB status would
+// otherwise produce via statusLabel() (src/lib/bookings.ts).
 export type BookingStatus =
   | "Pending"
+  | "Verifying payment"
+  | "Payment issue"
   | "Assigned"
   | "En route"
   | "In progress"
@@ -170,6 +177,18 @@ export function nextDates(count = 7): DateOpt[] {
     });
   }
   return out;
+}
+
+// Customer-visible short ticket code (Phase 14 ticket 8), e.g. "#A1B2".
+// Just the first 4 hex chars of the booking's UUID, uppercased — cheap and
+// enough to say "the booking with the pink couch" over the phone, but NOT
+// collision-proof (16^4 = 65,536 possible values, no uniqueness check
+// against other bookings). If a truly unique human ticket is ever wanted,
+// that needs a dedicated short-code column (sequence or collision-checked),
+// not this. Mirrored in admin/src/lib/format.ts#bookingTicketCode — the two
+// apps share no code, but must derive the identical code from the same id.
+export function bookingTicketCode(bookingId: string): string {
+  return `#${bookingId.slice(0, 4).toUpperCase()}`;
 }
 
 export const GCASH_NUMBER = "0917 555 0123";

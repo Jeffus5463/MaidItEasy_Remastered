@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { useAssignPartner, useBookings, usePartners } from '@/lib/data';
 import { formatWhen, serviceLabel } from '@/lib/format';
 import { colors, fonts } from '@/theme';
-import { BookingRow } from '@/lib/types';
+import { BookingRow, PaymentRow } from '@/lib/types';
 import { useToast } from './Toast';
 import { Avatar, Modal, chip, svcIconWrap } from './shared';
-import { AirconIcon, BroomIcon, CloseIcon, TickIcon, ShieldIcon } from './icons';
+import { AirconIcon, AlertIcon, BroomIcon, CloseIcon, TickIcon, ShieldIcon } from './icons';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -18,11 +18,17 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 // no code with either.
 const BUFFER_MINUTES = 30;
 
-export function AssignModal({ booking, onClose }: { booking: BookingRow; onClose: () => void }) {
+export function AssignModal({ booking, payment, onClose }: { booking: BookingRow; payment: PaymentRow | undefined; onClose: () => void }) {
   const { data: partners } = usePartners();
   const { data: allBookings } = useBookings();
   const assignPartner = useAssignPartner();
   const showToast = useToast();
+
+  // Phase 14 ticket 7 — soft gate, not a hard block: dispatching a GCash
+  // booking before its payment is verified is allowed (the admin may have a
+  // reason — a screenshot they've eyeballed but haven't clicked "Mark
+  // verified" yet, say), just made explicit so it's never accidental.
+  const gcashUnverified = payment?.method === 'gcash' && payment.status !== 'verified';
 
   // Use the booking's own date, not today — appending "T00:00:00" (no "Z")
   // forces local-time parsing so this doesn't shift a day depending on the
@@ -123,6 +129,16 @@ export function AssignModal({ booking, onClose }: { booking: BookingRow; onClose
           </div>
         )}
 
+        {gcashUnverified && (
+          <div style={{ marginBottom: 10, display: 'flex', gap: 9, alignItems: 'flex-start', background: colors.goldTintAlt, border: `1px solid ${colors.goldBorder}`, borderRadius: 12, padding: '10px 12px' }}>
+            <AlertIcon size={15} color={colors.goldText} />
+            <div style={{ fontSize: '11.5px', color: colors.goldTextDeep, lineHeight: 1.5 }}>
+              This booking&apos;s GCash payment {payment?.status === 'rejected' ? 'was rejected' : "hasn't been verified"} yet — check
+              it on the GCash page first, or assign anyway if you&apos;re confident.
+            </div>
+          </div>
+        )}
+
         {okCount === 0 && (
           <div style={{ border: '1.5px dashed #e0c9a6', background: '#fdf6ea', borderRadius: 14, padding: 16, display: 'flex', gap: 11, alignItems: 'flex-start', marginBottom: 10 }}>
             <div style={{ fontSize: '12.5px', color: '#7a5c1c', lineHeight: 1.5 }}>
@@ -199,7 +215,7 @@ export function AssignModal({ booking, onClose }: { booking: BookingRow; onClose
             borderRadius: 12,
           }}
         >
-          {assignPartner.isPending ? 'Assigning…' : 'Assign & push'}
+          {assignPartner.isPending ? 'Assigning…' : gcashUnverified ? 'Assign anyway' : 'Assign & push'}
         </button>
       </div>
     </Modal>

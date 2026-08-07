@@ -58,6 +58,15 @@ export function customerLabel(booking: { customer_name: string | null; contact: 
   return booking.customer_name || booking.contact;
 }
 
+// Customer-visible short ticket code (Phase 14 ticket 8), e.g. "#A1B2" — must
+// derive the identical code from the same booking id as
+// src/data.ts#bookingTicketCode (the Expo app); the two apps share no code,
+// so this is a deliberate duplicate, not an independent format. NOT
+// collision-proof — see that function's comment for the caveat.
+export function bookingTicketCode(bookingId: string): string {
+  return `#${bookingId.slice(0, 4).toUpperCase()}`;
+}
+
 // isoTimestamp -> "2m ago" / "3h ago" / "5d ago" — coarse, dispatcher-facing
 // recency (see bookings.declined_at), not a precision clock.
 export function timeAgo(isoTimestamp: string) {

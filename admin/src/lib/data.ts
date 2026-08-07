@@ -103,17 +103,19 @@ export function useUnassignBooking() {
   });
 }
 
-// refundNeeded is decided by the caller (true when the linked payment was
-// already 'verified' at cancel time) — no automatic refund is attempted.
+// refund_needed is now computed server-side (admin_cancel_booking() RPC,
+// supabase/migrations/*_admin_cancel_refund_reliability.sql) from the
+// booking's live linked payment row, not trusted from the client — the
+// `payment` prop CancelBookingModal shows its pre-cancel warning from can be
+// stale by the time the admin actually confirms. Returns whether a refund
+// is now owed, for the post-cancel toast.
 export function useCancelBooking() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ bookingId, refundNeeded }: { bookingId: string; refundNeeded: boolean }) => {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled', refund_needed: refundNeeded })
-        .eq('id', bookingId);
+    mutationFn: async (bookingId: string): Promise<boolean> => {
+      const { data, error } = await supabase.rpc('admin_cancel_booking', { p_booking_id: bookingId });
       if (error) throw error;
+      return !!data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-bookings'] }),
   });
@@ -177,6 +179,13 @@ export async function getPaymentProofUrl(path: string): Promise<string> {
   return data.signedUrl;
 }
 
+// Also invalidates admin-bookings (Phase 14 ticket 6b) — a late verify can
+// flip a cancelled booking's refund_needed via the
+// payments_sync_refund_needed trigger (*_refund_needed_on_late_verify.sql),
+// and /refunds + the board's "Refund needed" banner both read admin-bookings,
+// not admin-payments. Without this, that flip only ever reached the UI
+// through the realtime side-channel (AdminGate's unfiltered bookings
+// subscription), not this mutation's own optimistic-refetch path.
 export function useVerifyPayment() {
   const qc = useQueryClient();
   return useMutation({
@@ -187,7 +196,10 @@ export function useVerifyPayment() {
         .eq('id', paymentId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-payments'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-payments'] });
+      qc.invalidateQueries({ queryKey: ['admin-bookings'] });
+    },
   });
 }
 
@@ -201,7 +213,10 @@ export function useRejectPayment() {
         .eq('id', paymentId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-payments'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-payments'] });
+      qc.invalidateQueries({ queryKey: ['admin-bookings'] });
+    },
   });
 }
 

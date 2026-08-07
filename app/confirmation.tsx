@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../src/theme';
-import { formatHourRange, peso } from '../src/data';
+import { bookingTicketCode, formatHourRange, peso } from '../src/data';
 import { ErrorState, LoadingState, PrimaryButton } from '../src/components/UI';
 import { findService, useServices } from '../src/lib/services';
 import { useBooking } from '../src/store';
@@ -45,6 +45,7 @@ export default function Confirmation() {
         </Text>
 
         <View style={styles.card}>
+          {b.bookingId && <Row k="Ticket" v={bookingTicketCode(b.bookingId)} />}
           <Row k="Service" v={svc.name} />
           <Row k="When" v={when || '—'} />
           <Row k="Where" v={[b.barangay, b.landmark].filter(Boolean).join(' — ') || '—'} />

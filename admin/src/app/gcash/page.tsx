@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { getPaymentProofUrl, useBookings, usePayments, useVerifyPayment } from '@/lib/data';
-import { customerLabel, formatWhen, peso, serviceLabel } from '@/lib/format';
+import { bookingTicketCode, customerLabel, formatWhen, peso, serviceLabel } from '@/lib/format';
 import { colors, fonts } from '@/theme';
 import { TopBar, chip } from '@/components/shared';
 import { CloseIcon, GcashIcon, SearchIcon, TickIcon } from '@/components/icons';
@@ -112,7 +112,7 @@ export default function GcashPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 15, flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 180 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: colors.mutedSoft }}>#{p.booking_id.slice(0, 4).toUpperCase()}</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: colors.mutedSoft }}>{bookingTicketCode(p.booking_id)}</span>
                     <span
                       style={chip(
                         pending ? colors.goldTint : rejected ? colors.dangerTint : colors.primaryTint,

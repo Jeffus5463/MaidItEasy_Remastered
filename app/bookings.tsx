@@ -5,13 +5,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomNav } from '../src/components/BottomNav';
 import { SupportBlock } from '../src/components/SupportBlock';
 import { EmptyState, ErrorState, LoadingState } from '../src/components/UI';
-import { BookingStatus, peso } from '../src/data';
+import { BookingStatus, bookingTicketCode, peso } from '../src/data';
 import { colors, fonts, radius, shadow } from '../src/theme';
 import { formatBookingWhen, statusLabel, useMyBookings } from '../src/lib/bookings';
 import { findService, useServices } from '../src/lib/services';
 
 const STATUS_TINTS: Record<BookingStatus, { bg: string; fg: string }> = {
   Pending: { bg: colors.goldTint, fg: colors.goldText },
+  'Verifying payment': { bg: colors.goldTint, fg: colors.goldText },
+  'Payment issue': { bg: '#fbecea', fg: colors.danger },
   Assigned: { bg: colors.primaryTintBg, fg: colors.primaryDark },
   'En route': { bg: colors.primaryTintBg, fg: colors.primaryDark },
   'In progress': { bg: colors.primaryTintBg, fg: colors.primaryDark },
@@ -50,7 +52,16 @@ export default function Bookings() {
             // "Assigned" until accepted_at is actually set, same reasoning
             // as the tracking screen (app/tracking.tsx).
             const dispatched = booking.status === 'assigned' && !booking.accepted_at;
-            const status = statusLabel(dispatched ? 'pending' : booking.status);
+            // Derived payment stage (Phase 14, no new booking status) takes
+            // over the chip whenever a GCash payment isn't verified yet —
+            // same three states as app/tracking.tsx's timeline.
+            const gcashPayment = booking.payments.find((p) => p.method === 'gcash');
+            const status: BookingStatus =
+              booking.status !== 'cancelled' && gcashPayment?.status === 'awaiting_payment'
+                ? 'Verifying payment'
+                : booking.status !== 'cancelled' && gcashPayment?.status === 'rejected'
+                  ? 'Payment issue'
+                  : statusLabel(dispatched ? 'pending' : booking.status);
             const tint = STATUS_TINTS[status];
             const barangay = [booking.barangay, booking.landmark].filter(Boolean).join(', ');
             return (
@@ -69,7 +80,9 @@ export default function Bookings() {
                       )}
                     </View>
                     <View>
-                      <Text style={styles.name}>{svc.name}</Text>
+                      <Text style={styles.name}>
+                        {svc.name} <Text style={styles.ticket}>{bookingTicketCode(booking.id)}</Text>
+                      </Text>
                       <Text style={styles.when}>{formatBookingWhen(booking.date, booking.start_hour, booking.duration_hours)}</Text>
                     </View>
                   </View>
@@ -120,6 +133,7 @@ const styles = StyleSheet.create({
   rowLeft: { flexDirection: 'row', gap: 12, alignItems: 'center', flexShrink: 1 },
   icon: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   name: { fontFamily: fonts.bold, fontSize: 15, color: colors.ink },
+  ticket: { fontFamily: fonts.medium, fontSize: 11.5, color: colors.mutedSoft },
   when: { fontFamily: fonts.medium, fontSize: 12, color: colors.muted, marginTop: 1 },
   chip: { paddingHorizontal: 11, paddingVertical: 5, borderRadius: radius.pill },
   chipText: { fontFamily: fonts.bold, fontSize: 11.5 },

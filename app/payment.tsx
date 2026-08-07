@@ -154,7 +154,7 @@ export default function Payment() {
                 keyboardType="number-pad"
               />
               {refTouched && refDigits.length > 0 && !refValid && (
-                <FieldError>Enter the 10–13 digit reference number from your GCash receipt.</FieldError>
+                <FieldError>Enter the 13-digit reference number from your GCash receipt.</FieldError>
               )}
               <Text style={styles.gcashLabel}>Payment screenshot</Text>
               <Pressable onPress={pickProof} disabled={uploadingProof} style={styles.proofSlot}>

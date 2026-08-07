@@ -28,6 +28,25 @@ export function formatGcashRef(digits: string): string {
   return digits.match(/.{1,4}/g)?.join(' ') ?? digits;
 }
 
+// Real GCash reference numbers are 13 digits. This is a format check only —
+// the screenshot + admin review remain the real verification (Phase 10);
+// this just stops obvious junk (e.g. "1234 1234 1234" used to pass at
+// length 13... it no longer does) from reaching that human review at all.
 export function isValidGcashRef(digits: string): boolean {
-  return digits.length >= 10 && digits.length <= 13;
+  if (!/^\d{13}$/.test(digits)) return false;
+
+  // All 13 digits the same, e.g. "1111111111111".
+  if (/^(\d)\1{12}$/.test(digits)) return false;
+
+  // A simple ascending or descending run (wrapping 9->0 or 0->9), e.g.
+  // "1234567890123" or "9876543210987".
+  const isRun = (step: number) =>
+    digits.split('').every((d, i) => i === 0 || Number(d) === (Number(digits[i - 1]) + step + 10) % 10);
+  if (isRun(1) || isRun(-1)) return false;
+
+  // A 4-digit block repeated to fill the reference, e.g. "1234123412341".
+  const block = digits.slice(0, 4);
+  if (block.repeat(4).slice(0, 13) === digits) return false;
+
+  return true;
 }
