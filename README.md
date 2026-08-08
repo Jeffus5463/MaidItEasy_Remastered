@@ -1,5 +1,7 @@
 # MaidItEasy
 
+[![CI](https://github.com/Jeffus5463/MaidItEasy_Remastered/actions/workflows/ci.yml/badge.svg)](https://github.com/Jeffus5463/MaidItEasy_Remastered/actions/workflows/ci.yml)
+
 Home-services booking app for **Dumaguete City** — verified partners, fixed peso pricing, easy
 booking. Built with Expo (React Native) + TypeScript, from an HTML/CSS design prototype.
 
@@ -76,6 +78,24 @@ above for each additional admin.
   limited and not reliable enough to depend on for this. Without SMTP configured, the request
   still "succeeds" silently (no email ever arrives) rather than failing loudly, so confirm delivery
   by actually checking an inbox once SMTP is set up, not just by the UI's success message.
+
+## Testing
+
+Unit tests cover pure logic in both packages (validators, formatters, commission math, partner-
+dashboard bucketing, admin dispatch candidate matching, nav-badge counting) — see `*.test.ts` files
+colocated next to the modules they test. Not covered yet: database-level guarantees (RLS, capacity
+triggers, refund computation) and end-to-end flows.
+
+```bash
+npm test              # root — Expo app
+npm run test:watch
+npm run test:coverage
+
+cd admin && npm test  # admin console
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs typecheck + tests for both packages on every push
+and PR to `main`.
 
 ## Project structure
 
