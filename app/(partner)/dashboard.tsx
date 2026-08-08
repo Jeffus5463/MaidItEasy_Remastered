@@ -6,7 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts, radius } from '../../src/theme';
 import { toLocalIso } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
-import { BookingRow, formatBookingWhen } from '../../src/lib/bookings';
+import { formatBookingWhen } from '../../src/lib/bookings';
+import { bucketPartnerJobs } from '../../src/lib/partnerDashboard';
 import { useMyJobs } from '../../src/lib/partner';
 import { signOutPartner, useRequirePartner } from '../../src/lib/partnerAuth';
 import { useRealtimeInvalidate } from '../../src/lib/realtime';
@@ -71,31 +72,17 @@ export default function PartnerDashboard() {
     );
   }
 
-  // Three buckets, each sorted by the job's own scheduled date/time (not
-  // created_at, which is useMyJobs' own order and reflects booking-creation
-  // order, not schedule order). 'pending' is excluded from every bucket: a
-  // Phase 4 soft-hold can set partner_id while status stays 'pending', and
-  // per CLAUDE.md a partner isn't meant to see a booking until it actually
+  // Bucketing logic lives in src/lib/partnerDashboard.ts (extracted so it's
+  // unit-testable without an RN/Supabase runtime — see CLAUDE.md ->
+  // Conventions). 'pending' is excluded from every bucket: a Phase 4
+  // soft-hold can set partner_id while status stays 'pending', and per
+  // CLAUDE.md a partner isn't meant to see a booking until it actually
   // leaves 'pending' — filtering only by partner_id here isn't enough.
   // 'cancelled' is excluded too.
-  const visibleJobs = (mine ?? []).filter((j) => j.status !== 'pending' && j.status !== 'cancelled');
-  const byWhenAsc = (a: BookingRow, b: BookingRow) => (a.date === b.date ? a.start_hour - b.start_hour : a.date < b.date ? -1 : 1);
-
-  // Awaiting: dispatched but not yet accepted/declined. All of them, not
-  // just the newest — Phase 2.8 fix (was `mine?.find(...)`, hiding every
-  // assignment but the single latest).
-  const awaitingJobs = visibleJobs.filter((j) => j.status === 'assigned' && !j.accepted_at).sort(byWhenAsc);
-  // Upcoming: accepted and not yet completed (assigned-and-accepted,
-  // en_route, or in_progress).
-  const upcomingJobs = visibleJobs.filter((j) => !!j.accepted_at && j.status !== 'completed').sort(byWhenAsc);
-  // Completed: most-recent-first. There's no completed_at column, so the
-  // job's own scheduled date/time is the best available proxy.
-  const completedJobs = visibleJobs.filter((j) => j.status === 'completed').sort((a, b) => byWhenAsc(b, a));
+  const { awaitingJobs, upcomingJobs, completedJobs, todayCount } = bucketPartnerJobs(mine ?? [], toLocalIso(new Date()));
 
   const pendingCount = awaitingJobs.length;
   const hasNewJob = pendingCount > 0;
-  const todayStr = toLocalIso(new Date());
-  const todayCount = visibleJobs.filter((j) => j.date === todayStr).length;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>

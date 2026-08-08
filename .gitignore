@@ -18,6 +18,9 @@ expo-env.d.ts
 # metro
 .metro-health-check*
 
+# testing
+coverage/
+
 # misc
 .DS_Store
 *.log

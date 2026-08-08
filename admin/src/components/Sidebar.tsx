@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useBookings, usePayments } from '@/lib/data';
 import { signOutAdmin, useAdminSession } from '@/lib/auth';
+import { countBadges } from '@/lib/badges';
 import { colors, fonts } from '@/theme';
 import { BoardIcon, CatalogIcon, GcashIcon, HomeIcon, PayoutIcon, RefundIcon, RosterIcon } from './icons';
 
@@ -23,39 +24,12 @@ export const NAV = [
 // underlying (already-cached) queries, so computing it more than once is
 // free, and it keeps the nav badges and the summary's "Needs your
 // attention" card from drifting apart (Genuine logic #4, CLAUDE.md ->
-// Admin console).
-//
-// Two distinct "attention" cases, surfaced separately: `needsAttention` is
-// a genuinely blocked booking (release_and_rehold() found nobody free —
-// `qualified_free_partners()` excludes the just-declined/unassigned
-// partner, see supabase/migrations/*_hourly_booking_capacity.sql);
-// `declined` is broader — any booking still carrying a decline flag,
-// including ones release_and_rehold() *did* successfully re-hold, since an
-// admin still needs to notice and confirm it (decline_reason/declined_at
-// only clear on the next useAssignPartner() call). `attention` is their
-// union (deduped by booking id) for the single nav pill.
+// Admin console). The counting itself lives in the pure countBadges()
+// (src/lib/badges.ts) so it's unit-testable without these hooks.
 export function useNavBadgeCounts() {
   const { data: bookings } = useBookings();
   const { data: payments } = usePayments();
-
-  const pending = bookings?.filter((b) => b.status === 'pending') ?? [];
-  const needsAttention = pending.filter((b) => !b.partner_id);
-  const declined = (bookings ?? []).filter((b) => !!b.decline_reason);
-  const attentionIds = new Set([...needsAttention, ...declined].map((b) => b.id));
-  const mostRecentDeclineAt = declined.reduce<string | null>(
-    (latest, b) => (b.declined_at && (!latest || b.declined_at > latest) ? b.declined_at : latest),
-    null
-  );
-  const refundsOwed = (bookings ?? []).filter((b) => b.refund_needed && !b.refunded_at);
-
-  return {
-    attention: attentionIds.size,
-    gcash: payments?.filter((p) => p.status === 'awaiting_payment').length ?? 0,
-    needsAttention: needsAttention.length,
-    declined: declined.length,
-    mostRecentDeclineAt,
-    refunds: refundsOwed.length,
-  };
+  return countBadges(bookings, payments);
 }
 
 export function Sidebar() {

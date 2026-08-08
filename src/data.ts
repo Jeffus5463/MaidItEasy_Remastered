@@ -206,6 +206,12 @@ export const DUMAGUETE_CENTER = { latitude: 9.3068, longitude: 123.3054 };
 // Pure commission for the prototype (decisions-log #8): earn = job fee × rate.
 export const COMMISSION_RATE = 0.2;
 
+// earn = job fee × rate — extracted so job.tsx/completed.tsx share one
+// implementation instead of duplicating the inline Math.round.
+export function computeCommission(total: number, rate: number = COMMISSION_RATE): number {
+  return Math.round(total * rate);
+}
+
 export const DECLINE_REASONS = [
   "Schedule conflict",
   "Location too far",

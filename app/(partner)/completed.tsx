@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
-import { COMMISSION_RATE, peso } from '../../src/data';
+import { COMMISSION_RATE, computeCommission, peso } from '../../src/data';
 import { ErrorState, LoadingState } from '../../src/components/UI';
 import { formatBookingWhen } from '../../src/lib/bookings';
 import { useJob, useJobPhotos } from '../../src/lib/partner';
@@ -43,7 +43,7 @@ export default function JobCompleted() {
       </SafeAreaView>
     );
   }
-  const earn = Math.round(booking.total * COMMISSION_RATE);
+  const earn = computeCommission(booking.total);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>

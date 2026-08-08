@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, radius, shadow } from '../../src/theme';
-import { COMMISSION_RATE, DECLINE_REASONS, peso } from '../../src/data';
+import { COMMISSION_RATE, DECLINE_REASONS, computeCommission, peso } from '../../src/data';
 import { ErrorState, FieldError, LoadingState } from '../../src/components/UI';
 import { bookingScope, customerLabel, formatBookingWhen } from '../../src/lib/bookings';
 import { acceptJob, declineJob, useJob } from '../../src/lib/partner';
@@ -70,7 +70,7 @@ export default function JobDetail() {
     );
   }
 
-  const earn = Math.round(booking.total * COMMISSION_RATE);
+  const earn = computeCommission(booking.total);
   const digits = booking.contact.replace(/\D/g, '');
   const paymentMethod = booking.payments?.[0]?.method ?? null;
 
